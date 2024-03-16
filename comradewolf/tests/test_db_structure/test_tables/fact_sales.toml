@@ -1,0 +1,12 @@
+table = "fact_sales"
+schema = "public"
+database = "query_builder"
+table_type = "data"
+
+[fields]
+id = {type = "select", show = "false"}
+sk_item_id = {type = "select", show = "false"}
+sk_store_id = {type = "select", show = "false"}
+value = {type = "select", show = "true", name="Продажа. Кол-во шт.", show_group="Продажи", front_type="number"}
+money = {type = "select", show = "true", name="Продажа. Сумма руб.", show_group="Продажи", front_type="number"}
+date = {type = "select", show = "false"}

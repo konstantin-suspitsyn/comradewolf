@@ -1,0 +1,12 @@
+table = "dim_bud_reserv_2"
+schema = "abc"
+database = "abc"
+table_type = "dimension"
+
+[fields]
+sk_bud_reserv_2_id = {type = "select", show = "false"}
+bk_bud_reserv_2 = {type = "select", show = "true", name="Бад резерв ID"}
+bud_reserv_2_name = {type = "select", show = "true", name="Бад резерв имя"}
+
+valid_from = {type = "select", show = "false"}
+valid_to = {type = "select", show = "false"}

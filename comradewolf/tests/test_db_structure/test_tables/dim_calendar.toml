@@ -1,0 +1,15 @@
+table = "dim_calendar"
+schema = "public"
+database = "query_builder"
+table_type = "dimension"
+
+[fields]
+id = {type = "select", show = "false"}
+date = {type = "select", show = "true", name="Дата", show_group="Календарь", front_type="date"}
+week_no = {type = "select", show = "true", name="Номер недели", show_group="Календарь", front_type="number"}
+first_day_of_week = {type = "select", show = "true", name="Первый день недели", show_group="Календарь", front_type="boolean"}
+last_day_of_week = {type = "select", show = "true", name="Последний день недели", show_group="Календарь", front_type="boolean"}
+first_day_of_month = {type = "select", show = "true", name="Первый день недели", show_group="Календарь", front_type="boolean"}
+last_day_of_month = {type = "select", show = "true", name="Последний день недели", show_group="Календарь", front_type="boolean"}
+month = {type = "select", show = "true", name="Месяц", show_group="Календарь", front_type="number"}
+year = {type = "select", show = "true", name="Год", show_group="Календарь", front_type="number"}

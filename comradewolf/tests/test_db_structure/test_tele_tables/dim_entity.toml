@@ -1,0 +1,18 @@
+table = "dim_entity"
+schema = "abc"
+database = "abc"
+table_type = "dimension"
+
+[fields]
+sk_entity_id = {type = "select", show = "false"}
+bk_entity = {type = "select", show = "true", name="РФ ID"}
+entity_name = {type = "select", show = "true", name="Имя РФ"}
+uroven_gk_mrf_rf = {type = "select", show = "true", name="Уровень РФ/МРФ"}
+mrf = {type = "select", show = "true", name="МРФ"}
+rd = {type = "select", show = "true", name="РД"}
+uo_names_rf = {type = "select", show = "true", name="РФ"}
+uo_short_names_rf = {type = "select", show = "true", name="РФ короткое имя"}
+top = {type = "select", show = "true", name="Топ-12"}
+flag_rf_dzo = {type = "select", show = "true", name="Флаг РЦ ДЗО"}
+valid_from = {type = "select", show = "false"}
+valid_to = {type = "select", show = "false"}
