@@ -2,7 +2,7 @@ import unittest
 import os
 
 from comradewolf.universe.frontend_backend_converter import FrontendBackendConverter
-from comradewolf.universe.joins_generator import GenerateJoins
+from src.comradewolf.universe.joins_generator import GenerateJoins
 from comradewolf.universe.possible_joins import AllPossibleJoins
 from comradewolf.universe.query_generator import QueryGenerator
 from comradewolf.universe.structure_generator import StructureGenerator

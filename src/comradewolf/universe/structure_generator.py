@@ -1,5 +1,5 @@
-from comradewolf.utils.data_types import WhereFields, AllFields, AllTables, AllJoins, FactTableJoins
-from comradewolf.utils.enums_and_field_dicts import ImportTypes, WhereFieldsProperties
+from src.comradewolf.utils.data_types import WhereFields, AllFields, AllTables, AllJoins, FactTableJoins
+from src.comradewolf.utils.enums_and_field_dicts import ImportTypes, WhereFieldsProperties
 from comradewolf.utils.utils import gather_data_from_toml_files_into_big_dictionary, list_toml_files_in_directory, \
     true_false_converter
 
