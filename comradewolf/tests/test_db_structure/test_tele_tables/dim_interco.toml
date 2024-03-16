@@ -1,0 +1,11 @@
+table = "dim_interco"
+schema = "abc"
+database = "abc"
+table_type = "dimension"
+
+[fields]
+sk_interco_id = {type = "select", show = "false"}
+bk_interco = {type = "select", show = "true", name="Interco ID"}
+interco_name = {type = "select", show = "true", name="Имя Interco"}
+valid_from = {type = "select", show = "false"}
+valid_to = {type = "select", show = "false"}

@@ -1,0 +1,12 @@
+first_table = "hyperion"
+schema = "abc"
+database = "abc"
+
+[second_table]
+"abc.abc.dim_entity" = {how="inner", first_table_on=["abc.abc.hyperion.sk_entity_id", "abc.abc.hyperion.report_date", "abc.abc.hyperion.report_date"], second_table_on=["abc.abc.dim_entity.sk_entity_id", "abc.abc.dim_entity.valid_from", "abc.abc.dim_entity.valid_to"], between_tables=["=", "<=", ">="]}
+"abc.abc.dim_resp_center" = {how="inner", first_table_on=["abc.abc.hyperion.sk_resp_center_id", "abc.abc.hyperion.report_date", "abc.abc.hyperion.report_date"], second_table_on=["abc.abc.dim_entity.sk_resp_center_id", "abc.abc.dim_entity.valid_from", "abc.abc.dim_entity.valid_to"], between_tables=["=", "<=", ">="]}
+"abc.abc.dim_account_bud" = {how="inner", first_table_on=["abc.abc.hyperion.sk_account_bud_id", "abc.abc.hyperion.report_date", "abc.abc.hyperion.report_date"], second_table_on=["abc.abc.dim_entity.sk_account_bud_id", "abc.abc.dim_entity.valid_from", "abc.abc.dim_entity.valid_to"], between_tables=["=", "<=", ">="]}
+"abc.abc.dim_bud_reserv_2" = {how="inner", first_table_on=["abc.abc.hyperion.sk_bud_reserv_2_id", "abc.abc.hyperion.report_date", "abc.abc.hyperion.report_date"], second_table_on=["abc.abc.dim_entity.sk_bud_reserv_2_id", "abc.abc.dim_entity.valid_from", "abc.abc.dim_entity.valid_to"], between_tables=["=", "<=", ">="]}
+"abc.abc.dim_interco" = {how="inner", first_table_on=["abc.abc.hyperion.sk_interco_id", "abc.abc.hyperion.report_date", "abc.abc.hyperion.report_date"], second_table_on=["abc.abc.dim_entity.sk_interco_id", "abc.abc.dim_entity.valid_from", "abc.abc.dim_entity.valid_to"], between_tables=["=", "<=", ">="]}
+"abc.abc.dim_index_con" = {how="inner", first_table_on=["abc.abc.hyperion.sk_index_con_id", "abc.abc.hyperion.report_date", "abc.abc.hyperion.report_date"], second_table_on=["abc.abc.dim_entity.sk_index_con_id", "abc.abc.dim_entity.valid_from", "abc.abc.dim_entity.valid_to"], between_tables=["=", "<=", ">="]}
+"query_builder.public.dim_calendar" = {how="inner", first_table_on=["abc.abc.hyperion.report_date"], second_table_on=["query_builder.public.dim_calendar.date"], between_tables=["="]}

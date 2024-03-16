@@ -1,0 +1,11 @@
+table = "dim_resp_center"
+schema = "abc"
+database = "abc"
+table_type = "dimension"
+
+[fields]
+sk_resp_center_id = {type = "select", show = "false"}
+bk_resp_center = {type = "select", show = "true", name="Респ центр ID"}
+resp_center_name = {type = "select", show = "true", name="Имя Респ центр"}
+valid_from = {type = "select", show = "false"}
+valid_to = {type = "select", show = "false"}

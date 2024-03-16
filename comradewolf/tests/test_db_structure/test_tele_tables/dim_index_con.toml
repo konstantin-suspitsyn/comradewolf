@@ -1,0 +1,11 @@
+table = "dim_index_con"
+schema = "abc"
+database = "abc"
+table_type = "dimension"
+
+[fields]
+sk_index_con_id = {type = "select", show = "false"}
+bk_index_con = {type = "select", show = "true", name="Con ID"}
+index_con_name = {type = "select", show = "true", name="Имя Con"}
+valid_from = {type = "select", show = "false"}
+valid_to = {type = "select", show = "false"}

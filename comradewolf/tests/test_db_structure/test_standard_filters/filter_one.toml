@@ -1,0 +1,5 @@
+filter_name = "filter_one"
+front_end_name = "Первый настроенный фильтр"
+fields_list = ["query_builder.public.dim_store.store_id", "query_builder.public.dim_item.price"]
+where_query = "query_builder.public.dim_store.store_id = 1 and query_builder.public.dim_item.price > 1000"
+show_group = "Склад"

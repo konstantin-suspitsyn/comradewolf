@@ -1,0 +1,17 @@
+table = "fact_stock"
+schema = "public"
+database = "query_builder"
+table_type = "data"
+
+[fields]
+id = {type = "select", show = "false"}
+sk_item_id = {type = "select", show = "false"}
+sk_warehouse_id = {type = "select", show = "false"}
+value = {type = "value", show = "true", name="Запасы. Кол-во шт.", show_group="Запасы", front_type="number"}
+date = {type = "select", show = "false"}
+
+#[calculations]
+last_day_of_week_pcs = {type = "calculation", show = "true", calculation = "sum(query_builder.public.fact_stock.value)", included_fields = ["query_builder.public.fact_stock.value", "query_builder.public.dim_calendar.last_day_of_week"], where = "query_builder.public.dim_calendar.last_day_of_week = 1", name="Запасы на последний день недели, шт", show_group="Запасы", front_type="number"}
+first_day_of_week_pcs = {type = "calculation", show = "true", calculation = "sum(query_builder.public.fact_stock.value)", included_fields = ["query_builder.public.fact_stock.value", "query_builder.public.dim_calendar.first_day_of_week"], where = "query_builder.public.dim_calendar.first_day_of_week = 1", name="Запасы на первый день недели, шт", show_group="Запасы", front_type="number"}
+last_day_of_week_rub = {type = "calculation", show = "true", calculation = "sum(query_builder.public.fact_stock.value * query_builder.public.item.price)", included_fields = ["query_builder.public.fact_stock.value", "query_builder.public.item.price", "query_builder.public.dim_calendar.last_day_of_week"], where = "query_builder.public.dim_calendar.last_day_of_week = 1", name="Запасы на последний день недели, руб", show_group="Запасы", front_type="number"}
+first_day_of_week_rub = {type = "calculation", show = "true", calculation = "sum(query_builder.public.fact_stock.value * query_builder.public.item.price)", included_fields = ["query_builder.public.fact_stock.value", "query_builder.public.item.price", "query_builder.public.dim_calendar.first_day_of_week"], where = "query_builder.public.dim_calendar.first_day_of_week = 1", name="Запасы на последний день недели, руб", show_group="Запасы", front_type="number"}

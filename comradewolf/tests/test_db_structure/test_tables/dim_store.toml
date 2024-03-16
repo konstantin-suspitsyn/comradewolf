@@ -1,0 +1,10 @@
+table = "dim_store"
+schema = "public"
+database = "query_builder"
+table_type = "dimension"
+
+[fields]
+id = {type = "select", show = "false"}
+sk_store_id = {type = "select", show = "false"}
+bk_address = {type = "select", show = "true", name="Номер магазина", show_group="Магазин", front_type="text"}
+address = {type = "select", show = "true", name="Адрес магазина", show_group="Магазин", front_type="text"}

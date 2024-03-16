@@ -1,0 +1,21 @@
+table = "hyperion"
+schema = "abc"
+database = "abc"
+table_type = "data"
+
+[fields]
+sk_row_id = {type = "select", show = "false"}
+sk_entity_id = {type = "select", show = "false"}
+sk_resp_center_id = {type = "select", show = "false"}
+sk_account_bud_id = {type = "select", show = "false"}
+sk_bud_reserv_2_id = {type = "select", show = "false"}
+sk_index_con_id = {type = "select", show = "false"}
+sk_interco_id = {type = "select", show = "false"}
+sk_program_id = {type = "select", show = "false"}
+sk_bud_reserv_1_id = {type = "select", show = "false"}
+sk_scenario_id = {type = "select", show = "false"}
+sk_contractor_id = {type = "select", show = "false"}
+report_date = {type = "select", show = "false"}
+sk_version_id = {type = "select", show = "false"}
+sk_source_id = {type = "select", show = "false"}
+value = {type = "value", show = "true", name="PL, руб"}
