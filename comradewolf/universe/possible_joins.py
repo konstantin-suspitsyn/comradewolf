@@ -33,9 +33,6 @@ class AllPossibleJoins(UserDict):
             }
     """
 
-    def __init__(self):
-        super().__init__()
-
     def has_join(self, start_table: str, end_table: str) -> bool:
         """
         Checks if self.data has join between tables start_table and end_table

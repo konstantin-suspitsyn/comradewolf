@@ -51,7 +51,6 @@ class StructureGenerator:
         self.__generate_all_joins(toml_joins_dict)
         self.__generate_predefined_where_fields(toml_filters_dict)
 
-
     def __generate_short_tables(self, toml_tables: dict) -> None:
         """
         Generates __short_tables_dictionary

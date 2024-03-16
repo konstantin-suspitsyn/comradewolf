@@ -643,11 +643,8 @@ class FieldsForQuery(UserDict):
         Creates table structure for new table
         :return: table structure for new table
         """
-        table_structure = dict()
-        table_structure[FieldType.SELECT.value] = []
-        table_structure[FieldType.CALCULATION.value] = []
-        table_structure["not_for_select"] = []
-        table_structure["where"] = []
+        table_structure: dict = {FieldType.SELECT.value: [], FieldType.CALCULATION.value: [], "not_for_select": [],
+                                 "where": []}
         # table_structure["not_for_select"] = set()
         # table_structure["join_tables"] = set()
         # table_structure["fact_must_join_on"] = set()

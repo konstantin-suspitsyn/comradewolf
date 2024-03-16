@@ -25,6 +25,8 @@ class BaseCalculationBuilder(ABC):
         if calculation_type == "count distinct":
             return self.generate_count_distinct(field_name)
 
+        raise RuntimeError
+
     @abstractmethod
     def generate_sum(self, field_name: str) -> str:
         pass

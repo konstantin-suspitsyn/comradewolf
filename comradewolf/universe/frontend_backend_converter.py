@@ -167,4 +167,3 @@ class FrontendBackendConverter:
             raise RuntimeError("Таблицу из поля не получилось получить")
 
         return data_tables, dimension_tables
-
