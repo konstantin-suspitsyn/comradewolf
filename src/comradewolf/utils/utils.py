@@ -194,6 +194,11 @@ def singleton(class_):
 
 
 def join_on_to_string(on_dictionary: dict) -> str:
+    """
+    Joins tables with and statement between fields
+    :param on_dictionary:
+    :return:
+    """
     on = []
     # TODO: make enum
     for i in range(len(on_dictionary["first_table_on"])):
