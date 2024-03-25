@@ -1,7 +1,7 @@
 import warnings
 from collections import UserDict
 
-from comradewolf.utils.enums_and_field_dicts import FrontendTypeFields, TableTypes, FieldType, FrontFieldTypes
+from src.comradewolf.utils.enums_and_field_dicts import FrontendTypeFields, TableTypes, FieldType, FrontFieldTypes
 from comradewolf.utils.exceptions import UnknownFieldType, FieldsFromFrontendWrongValue, UnknownTableType, \
     UnknownFieldTypeForField, NotAllMandatoryFields, ObjectExists
 from comradewolf.utils.utils import get_table_from_field

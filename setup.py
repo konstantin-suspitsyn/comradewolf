@@ -39,10 +39,9 @@ setup(
     ],
     keywords="sql, code-generator",
 
-    package_dir={"comradewolf": "comradewolf",
-                 "comradewolf.universe": r"comradewolf/universe",
-                 "comradewolf.utils": r"comradewolf/utils",
-                 "comradewolf.tests": r"comradewolf/tests", },
+    package_dir={"comradewolf": r"src/comradewolf",
+                 "comradewolf.universe": r"src/comradewolf/universe",
+                 "comradewolf.utils": r"src/comradewolf/utils", },
 
     packages=["comradewolf",
               "comradewolf.universe",
