@@ -1,0 +1,11 @@
+first_table = "fact_stock"
+schema = "public"
+database = "query_builder"
+
+[second_table]
+"query_builder.public.dim_item" = {how="inner", first_table_on=["query_builder.public.fact_stock.sk_item_id"], second_table_on=["query_builder.public.dim_item.sk_item_id"], between_tables=["="]}
+"query_builder.public.dim_warehouse" = {how="inner", first_table_on=["query_builder.public.fact_stock.sk_warehouse_id"], second_table_on=["query_builder.public.dim_warehouse.sk_warehouse_id"], between_tables=["="]}
+"query_builder.public.dim_calendar" = {how="left", first_table_on=["query_builder.public.fact_stock.date"], second_table_on=["query_builder.public.dim_calendar.date"], between_tables=["="]}
+
+[fact_table_joins]
+"query_builder.public.fact_sales" = {join_tables = ["query_builder.public.dim_item", "query_builder.public.dim_calendar"]}
