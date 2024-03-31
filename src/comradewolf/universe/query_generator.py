@@ -427,7 +427,7 @@ class QueryGenerator:
             condition_string = "({})".format(", ".join(conditions))
 
         else:
-            condition_string: str = single_field_placeholder.format(condition["condition"][0])
+            condition_string: str = self.language_specific.operator_formatting(operator).format(
+                single_field_placeholder.format(condition["condition"][0]))
 
-        return where_string_placeholder.format(field_name, self.language_specific.operator_formatting(operator).format(
-            condition_string))
+        return where_string_placeholder.format(field_name, condition_string)
