@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "comradewolf"
-version = "0.0.1a1"
+version = "0.0.1b1"
 authors = [
   { name="Konstantin Suspitsyn", email="konstantin.suspitsyn@xmail.ru" },
 ]
@@ -12,7 +12,7 @@ description = "Helps build SQL queries without code"
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Code Generators",
     "License :: OSI Approved :: Apache Software License",
