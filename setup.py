@@ -15,7 +15,7 @@ setup(
 
     name="comradewolf",
 
-    version="0.0.1a1",
+    version="0.0.1b1",
 
     description="Helps build SQL queries without code",
 
@@ -29,7 +29,7 @@ setup(
     author_email="konstantin.suspitsyn@xmail.ru",
 
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "Topic :: Software Development :: Code Generators",
         "License :: OSI Approved :: Apache Software License",
