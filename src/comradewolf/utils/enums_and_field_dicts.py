@@ -91,3 +91,35 @@ class WhereFieldsProperties(enum.Enum):
     FIELDS_LIST = "fields_list"
     WHERE_QUERY = "where_query"
     SHOW_GROUP = "show_group"
+
+
+class OlapFieldTypes(enum.Enum):
+    VALUE = "value"
+    DIMENSION = "dimension"
+    SERVICE_KEY = "service_key"
+
+
+class OlapCalculations(enum.Enum):
+    """
+    Calculations that is applied to the field
+    """
+    SUM = "sum"
+    COUNT = "count"
+    COUNT_DISTINCT = "count_distinct"
+    MAX = "max"
+    MIN = "min"
+    AVG = "avg"
+    NONE = "none"
+
+
+class OlapFollowingCalculations(enum.Enum):
+    """
+    Enum of possible next calculations if any was applied
+    """
+    NONE = "none"
+    SUM = "sum"
+    COUNT = "count"
+    COUNT_DISTINCT = "count_distinct"
+    MAX = "max"
+    MIN = "min"
+    AVG = "avg"

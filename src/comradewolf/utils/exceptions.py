@@ -111,5 +111,14 @@ class QueryBuilderException(Exception):
     """
     Error occurring during building error
     """
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
+class OlapCreationException(Exception):
+    """
+    Error occurring during incorrect OLAP objects creation
+    """
     def __init__(self, message: str):
         super().__init__(message)
