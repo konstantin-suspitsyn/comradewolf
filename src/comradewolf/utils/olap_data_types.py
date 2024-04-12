@@ -3,6 +3,10 @@ from collections import UserDict
 from comradewolf.utils.enums_and_field_dicts import OlapFieldTypes, OlapFollowingCalculations, OlapCalculations
 from comradewolf.utils.exceptions import OlapCreationException
 
+NO_FRONT_NAME_ERROR = r"Front name should be specified only when field_type is dimension"
+
+SERVICE_KEY_EXISTS_ERROR_MESSAGE = r"Service key already exists"
+
 
 class OlapDataTable(UserDict):
     """
@@ -89,7 +93,7 @@ class OlapDataTable(UserDict):
         if calculation_type is None:
             return
 
-        if following_calculations not in following_calculations:
+        if following_calculation not in following_calculations:
             raise OlapCreationException(f"{following_calculation} is not one of [{following_calculation_for_error}]")
 
     @staticmethod
@@ -171,7 +175,7 @@ class OlapDimensionTable(UserDict):
             self.__check_alias(alias_name)
 
         if (field_type == OlapFieldTypes.DIMENSION.value) & (front_name is None):
-            raise OlapCreationException("Front name should be specified only when field_type is dimension")
+            raise OlapCreationException(NO_FRONT_NAME_ERROR)
 
         self.data["fields"][field_name] = {
             "alias_name": alias_name,
@@ -189,11 +193,30 @@ class OlapDimensionTable(UserDict):
             if self.data["fields"][field_name]["alias_name"] == alias_name:
                 raise OlapCreationException(f"Alias '{alias_name}' already exists")
 
-    @staticmethod
-    def __check_dimension_field_types(field_type):
+    def __check_dimension_field_types(self, field_type) -> None:
+        """
+        Checks if field type is either dimension or service_key
+        Ensures that service key is one
+
+        :param field_type:
+        :raises OlapCreateException:
+        :return:
+        """
         if field_type not in [OlapFieldTypes.SERVICE_KEY.value, OlapFieldTypes.DIMENSION.value]:
             raise OlapCreationException(f"Field type '{field_type}' should be one of ["
                                         f"{OlapFieldTypes.SERVICE_KEY.value}, {OlapFieldTypes.DIMENSION.value}]")
+
+        if field_type == OlapFieldTypes.SERVICE_KEY.value:
+            for field_name in self.data["fields"]:
+                if self.data["fields"][field_name]["field_type"] == OlapFieldTypes.SERVICE_KEY.value:
+                    raise OlapCreationException(SERVICE_KEY_EXISTS_ERROR_MESSAGE)
+
+    def get_field_names(self) -> list[str]:
+        """
+        Returns a list of field names
+        :return:
+        """
+        return list(self.data["fields"].keys())
 
 
 class OlapTablesCollection(UserDict):
