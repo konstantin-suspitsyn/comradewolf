@@ -1,0 +1,7 @@
+table = "dim_developer"
+schema = "games_olap"
+database = "olap_test"
+
+[fields]
+sk_id_developer = {field_type = "service_key", alias = "developer_name", front_name="none"}
+developer_name = {field_type = "dimension", alias = "none", front_name="Game Devloper"}

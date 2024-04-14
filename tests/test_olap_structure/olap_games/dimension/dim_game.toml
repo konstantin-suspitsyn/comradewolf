@@ -1,0 +1,8 @@
+table = "dim_game"
+schema = "games_olap"
+database = "olap_test"
+
+[fields]
+sk_id_game = {field_type = "service_key", alias = "sk_id_game", front_name="none"}
+bk_game_id = {field_type = "dimension", alias = "none", front_name="Game Id"}
+game_name = {field_type = "dimension", alias = "none", front_name="Game Name"}

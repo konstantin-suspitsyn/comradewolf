@@ -107,7 +107,7 @@ class OlapDataTable(UserDict):
         olap_calculations: list[str] = [f.value for f in OlapCalculations]
         olap_calculations_for_error: str = ", ".join(olap_calculations)
 
-        if calculation_type not in olap_calculations:
+        if (calculation_type not in olap_calculations) or (calculation_type is None):
             raise OlapCreationException(f"{olap_calculations} is not one of [{olap_calculations_for_error}]")
 
     def __check_alias_name(self, alias_name: str) -> None:
@@ -133,6 +133,10 @@ class OlapDataTable(UserDict):
 
         if (field_type != OlapFieldTypes.SERVICE_KEY.value) & (front_name is None):
             raise OlapCreationException(f"front_name should be specified on field_type != SERVICE_KEY")
+
+    def get_name(self) -> str:
+        """Returns the name of the OlapDataTable"""
+        return self.data["table_name"]
 
 
 class OlapDimensionTable(UserDict):
@@ -218,6 +222,10 @@ class OlapDimensionTable(UserDict):
         """
         return list(self.data["fields"].keys())
 
+    def get_name(self) -> str:
+        """Return table name"""
+        return self.data["table_name"]
+
 
 class OlapTablesCollection(UserDict):
     """
@@ -225,30 +233,23 @@ class OlapTablesCollection(UserDict):
 
     Has structure:
         {
-            main_olap_table_name:
-                {
 
-                    "main_table": OLAPDataTable,
-                    "calculated_tables":
+                    "data_tables":
                         {
-                            name_of_calculated_table: OLAPDataTable
+                            name_of_calculated_table: OLAPDataTable,
+                            ...
                         }
                     "dimension_tables":
                         {
-                            name_of_dimension_table: OLAPDimensionTable
+                            name_of_dimension_table: OLAPDimensionTable,
+                            ...
                         }
                 }
         }
     """
 
-    def __create_main_table(self, main_table_name: str) -> None:
-        """
-        Inserts main table if not exists
-        :param main_table_name:
-        :return:
-        """
-        if main_table_name not in self.data:
-            self.data[main_table_name] = {}
+    def __init__(self):
+        super().__init__({"data_tables": {}, "dimension_tables": {}})
 
     def add_data_table(self, data_table: OlapDataTable) -> None:
         """
@@ -257,8 +258,7 @@ class OlapTablesCollection(UserDict):
         :return: None
         """
 
-        # Should check if table is main ot not
-        pass
+        self.data["data_tables"][data_table.get_name()] = data_table
 
     def add_dimension_table(self, dimension_table: OlapDimensionTable) -> None:
         """
@@ -267,4 +267,26 @@ class OlapTablesCollection(UserDict):
         :return: None
         """
 
-        pass
+        self.data["dimension_tables"][dimension_table.get_name()] = dimension_table
+
+
+class OlapFrontend(UserDict):
+    """
+    Dictionary containing fields for frontend
+    """
+    def add_field(self, table_name: str, field_name: str, field_type: str, alias: str, front_name: str) -> None:
+        """
+        Add field to show on frontend
+        :param table_name:
+        :param field_name:
+        :param field_type:
+        :param alias:
+        :param front_name:
+        :return:
+        """
+        self.data[field_name] = {
+            "table_name": table_name,
+            "field_type": field_type,
+            "alias": alias,
+            "front_name": front_name,
+        }
