@@ -1,0 +1,13 @@
+table = "base_sales"
+schema = "games_olap"
+database = "olap_test"
+base_table = "false"
+
+[fields]
+count_distinct_games = {field_type = "service_key", alias = "sk_id_game", calculation_type = "count_distinct", following_calculation = "none", front_name = "none"}
+avg_price = {field_type = "value", alias = "price", calculation_type = "avg", following_calculation = "none", front_name = "Price"}
+sum_pcs = {field_type = "value", alias = "pcs", calculation_type = "sum", following_calculation = "sum", front_name = "Pieces"}
+sum_sales_rub = {field_type = "value", alias = "sales_rub", calculation_type = "sum", following_calculation = "sum", front_name = "Sales Rub"}
+year = {field_type = "dimension", alias = "year", calculation_type = "none", following_calculation = "none", front_name = "Year"}
+yearmonth = {field_type = "dimension", alias = "yearmonth", calculation_type = "none", following_calculation = "none", front_name = "Year_Month"}
+

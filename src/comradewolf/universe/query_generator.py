@@ -1,8 +1,8 @@
 import copy
 
 from comradewolf.universe.possible_joins import AllPossibleJoins
-from src.comradewolf.utils.data_types import FieldsForQuery, AllFields, AllTables, WhereFields
-from src.comradewolf.utils.enums_and_field_dicts import TableTypes, FieldType
+from comradewolf.utils.data_types import FieldsForQuery, AllFields, AllTables, WhereFields
+from comradewolf.utils.enums_and_field_dicts import TableTypes, FieldType
 from comradewolf.utils.exceptions import QueryBuilderException
 from comradewolf.utils.language_specific_builders import BaseCalculationBuilder
 from comradewolf.utils.utils import join_on_to_string

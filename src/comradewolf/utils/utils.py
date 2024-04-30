@@ -4,7 +4,7 @@ from collections import UserDict
 
 import toml
 
-from src.comradewolf.utils.enums_and_field_dicts import ImportTypes, TomlStructure, AllFieldsForImport
+from comradewolf.utils.enums_and_field_dicts import ImportTypes, TomlStructure, AllFieldsForImport
 from comradewolf.utils.exceptions import RepeatingTableException, UnknownTypeOfImport, NoMandatoryKeyException
 
 
@@ -206,3 +206,14 @@ def join_on_to_string(on_dictionary: dict) -> str:
                                     on_dictionary["second_table_on"][i]))
 
     return " AND ".join(on)
+
+
+def return_none_on_text(text: str) -> str | None:
+    """
+    If "none" is given, returns None
+    :param text:
+    :return:
+    """
+    if text.lower() == "none":
+        return None
+    return text

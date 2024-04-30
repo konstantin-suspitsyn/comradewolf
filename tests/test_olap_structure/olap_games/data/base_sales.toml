@@ -1,0 +1,19 @@
+table = "base_sales"
+schema = "games_olap"
+database = "olap_test"
+base_table = "true"
+
+[fields]
+sk_id_game = {field_type = "service_key", alias = "sk_id_game", calculation_type = "none", following_calculation = "none", front_name = "none"}
+release_date = {field_type = "dimension", alias = "release_date", calculation_type = "none", following_calculation = "none", front_name = "Release date"}
+english = {field_type = "dimension", alias = "english", calculation_type = "none", following_calculation = "none", front_name = "Has english"}
+sk_id_developer = {field_type = "service_key", alias = "sk_id_developer", calculation_type = "none", following_calculation = "none", front_name = "none"}
+sk_id_publisher = {field_type = "service_key", alias = "sk_id_publisher", calculation_type = "none", following_calculation = "none", front_name = "none"}
+sk_id_platform = {field_type = "service_key", alias = "sk_id_platform", calculation_type = "none", following_calculation = "none", front_name = "none"}
+achievements = {field_type = "value", alias = "achievements", calculation_type = "none", following_calculation = "none", front_name = "Amount of achievements"}
+price = {field_type = "value", alias = "price", calculation_type = "none", following_calculation = "none", front_name = "Price"}
+pcs = {field_type = "value", alias = "pcs", calculation_type = "none", following_calculation = "none", front_name = "Pieces"}
+sales_rub = {field_type = "value", alias = "sales_rub", calculation_type = "none", following_calculation = "none", front_name = "Sales Rub"}
+year = {field_type = "dimension", alias = "year", calculation_type = "none", following_calculation = "none", front_name = "Year"}
+yearmonth = {field_type = "dimension", alias = "yearmonth", calculation_type = "none", following_calculation = "none", front_name = "Year_Month"}
+
