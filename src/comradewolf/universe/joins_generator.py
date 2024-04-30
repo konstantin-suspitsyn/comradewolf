@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 from comradewolf.universe.possible_joins import AllPossibleJoins
-from src.comradewolf.utils.data_types import AllJoins, AllTables
+from comradewolf.utils.data_types import AllJoins, AllTables
 
 
 class GenerateJoins:

@@ -1,7 +1,7 @@
 from typing import Tuple
 
-from src.comradewolf.utils.data_types import FieldsFromFrontend, FieldsForQuery, AllFields, AllTables, WhereFields
-from src.comradewolf.utils.enums_and_field_dicts import FieldType, TableTypes, FrontendTypeFields
+from comradewolf.utils.data_types import FieldsFromFrontend, FieldsForQuery, AllFields, AllTables, WhereFields
+from comradewolf.utils.enums_and_field_dicts import FieldType, TableTypes, FrontendTypeFields
 from comradewolf.utils.language_specific_builders import BaseCalculationBuilder
 from comradewolf.utils.utils import get_table_from_field, get_fields
 

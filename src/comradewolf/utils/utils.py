@@ -4,7 +4,7 @@ from collections import UserDict
 
 import toml
 
-from src.comradewolf.utils.enums_and_field_dicts import ImportTypes, TomlStructure, AllFieldsForImport
+from comradewolf.utils.enums_and_field_dicts import ImportTypes, TomlStructure, AllFieldsForImport
 from comradewolf.utils.exceptions import RepeatingTableException, UnknownTypeOfImport, NoMandatoryKeyException
 
 
