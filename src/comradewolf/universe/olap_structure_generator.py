@@ -43,7 +43,7 @@ class OlapStructureGenerator:
         Create OlapDimensionTable.class
         Add OlapDimensionTable to OlapTablesCollection
         :param dimension_file_path: link to dimension toml file
-        :return:
+        :return: None
         """
         dimension_from_toml: dict = toml.load(dimension_file_path)
 
@@ -121,6 +121,10 @@ class OlapStructureGenerator:
         :return:
         """
         return self.frontend_fields
+
+    def get_dimension_table_list(self) -> list[str]:
+        """Returns a list of dimension table names"""
+        return list(self.tables_collection["dimension_tables"].keys())
 
 
 if __name__ == "__main__":

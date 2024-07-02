@@ -120,5 +120,15 @@ class OlapCreationException(Exception):
     """
     Error occurring during incorrect OLAP objects creation
     """
+
     def __init__(self, message: str):
+        super().__init__(message)
+
+
+class OlapTableExists(Exception):
+    """
+    Error occurring during trying to create existing OLAP objects table
+    """
+    def __init__(self, table_name: str, table_type: str) -> None:
+        message: str = f"Таблица {table_name} уже в списке таблиц {table_type}"
         super().__init__(message)

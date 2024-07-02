@@ -1,4 +1,4 @@
-table = "base_sales"
+table = "g_by_y_p"
 schema = "games_olap"
 database = "olap_test"
 base_table = "false"
@@ -9,4 +9,4 @@ avg_price = {field_type = "value", alias = "price", calculation_type = "avg", fo
 sum_pcs = {field_type = "value", alias = "pcs", calculation_type = "sum", following_calculation = "sum", front_name = "Pieces"}
 sum_sales_rub = {field_type = "value", alias = "sales_rub", calculation_type = "sum", following_calculation = "sum", front_name = "Sales Rub"}
 year = {field_type = "dimension", alias = "year", calculation_type = "none", following_calculation = "none", front_name = "Year"}
-count_distinct_games = {field_type = "service_key", alias = "sk_id_game", calculation_type = "count_distinct", following_calculation = "none", front_name = "none"}
+count_distinct_games = {field_type = "value", alias = "sk_id_game", calculation_type = "count_distinct", following_calculation = "none", front_name = "none"}

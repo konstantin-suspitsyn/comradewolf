@@ -1,7 +1,7 @@
 from collections import UserDict
 
 from comradewolf.utils.enums_and_field_dicts import OlapFieldTypes, OlapFollowingCalculations, OlapCalculations
-from comradewolf.utils.exceptions import OlapCreationException
+from comradewolf.utils.exceptions import OlapCreationException, OlapTableExists
 
 NO_FRONT_NAME_ERROR = r"Front name should be specified only when field_type is dimension"
 
@@ -54,7 +54,8 @@ class OlapDataTable(UserDict):
         self.__check_calculation_type(calculation_type)
         self.__check_following_calculation(calculation_type, following_calculation)
         self.__check_alias_name(alias_name)
-        self.__check_front_name(field_type, front_name)
+        if calculation_type == "none":
+            self.__check_front_name(field_type, front_name)
 
         self.data["fields"][field_name] = {
             "alias_name": alias_name,
@@ -258,6 +259,9 @@ class OlapTablesCollection(UserDict):
         :return: None
         """
 
+        if data_table.get_name() in self.data["data_tables"].keys():
+            raise OlapTableExists(data_table.get_name(), "data_tables")
+
         self.data["data_tables"][data_table.get_name()] = data_table
 
     def add_dimension_table(self, dimension_table: OlapDimensionTable) -> None:
@@ -267,6 +271,9 @@ class OlapTablesCollection(UserDict):
         :return: None
         """
 
+        if dimension_table.get_name() in self.data["dimension_tables"].keys():
+            raise OlapTableExists(dimension_table.get_name(), "dimension_tables")
+
         self.data["dimension_tables"][dimension_table.get_name()] = dimension_table
 
 
@@ -274,6 +281,7 @@ class OlapFrontend(UserDict):
     """
     Dictionary containing fields for frontend
     """
+
     def add_field(self, table_name: str, field_name: str, field_type: str, alias: str, front_name: str) -> None:
         """
         Add field to show on frontend
@@ -290,3 +298,59 @@ class OlapFrontend(UserDict):
             "alias": alias,
             "front_name": front_name,
         }
+
+
+class OlapFrontendToBackend(UserDict):
+    """
+    Type converts from Frontend to Backend for Olap to create SELECT
+    """
+    def __init__(self, frontend: dict) -> None:
+        """
+
+        :param frontend:
+            {'SELECT': [{'tableName': "database.schema.table", 'fieldName': 'field_name'},
+                        {'tableName': "database.schema.table", 'fieldName': 'field_name'},
+                       ],
+            'CALCULATION': [{'tableName': 'database.schema.table',
+                             'fieldName': 'field_name', 'calculation': 'CalculationType'},
+                             {'tableName': 'database.schema.table',
+                             'fieldName': 'field_name', 'calculation': 'CalculationType'},
+                           ],
+            'WHERE': [{'tableName': 'database.schema.table', 'fieldName': 'field_name',
+                       'where': 'where_type (>, <, =, ...)', 'condition': 'condition_string'},
+                      ]}
+        """
+
+        backend: dict = {"SELECT": [], "CALCULATION": [], "WHERE": []}
+
+        if "SELECT" in frontend.keys():
+            backend["SELECT"] = frontend["SELECT"]
+
+        if "CALCULATION" in frontend.keys():
+            backend["CALCULATION"] = frontend["CALCULATION"]
+
+        if "SELECT" in frontend.keys():
+            backend["WHERE"] = frontend["WHERE"]
+
+        super().__init__(frontend)
+
+    def get_select(self) -> list:
+        """
+        Returns list of select fields
+        :return:
+        """
+        return self.data["SELECT"]
+
+    def get_calculation(self) -> list:
+        """
+        Returns list of calculated fields
+        :return:
+        """
+        return self.data["CALCULATION"]
+
+    def get_where(self) -> list:
+        """
+        Returns list of where fields
+        :return:
+        """
+        return self.data["WHERE"]
