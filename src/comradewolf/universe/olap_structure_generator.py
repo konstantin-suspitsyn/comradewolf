@@ -55,7 +55,7 @@ class OlapStructureGenerator:
         for field in dimension_from_toml["fields"]:
             dimension_table.add_field(field, dimension_from_toml["fields"][field]["field_type"],
                                       return_none_on_text(dimension_from_toml["fields"][field]["alias"]),
-                                      return_none_on_text(dimension_from_toml["fields"][field]["front_name"]),)
+                                      return_none_on_text(dimension_from_toml["fields"][field]["front_name"]), )
 
         self.tables_collection.add_dimension_table(dimension_table)
 
@@ -75,12 +75,21 @@ class OlapStructureGenerator:
         data_table: OlapDataTable = OlapDataTable(table_name)
 
         for field in data_from_toml["fields"]:
+
+            alias_for_count: list[str] | None = None
+
+            if "alias_for_count" in data_from_toml["fields"][field]:
+                alias_for_count = []
+                for alias in data_from_toml["fields"][field]["alias_for_count"]:
+                    alias_for_count.append(alias.lower())
+
             data_table.add_field(field,
                                  return_none_on_text(data_from_toml["fields"][field]["alias"]),
                                  return_none_on_text(data_from_toml["fields"][field]["field_type"]),
                                  data_from_toml["fields"][field]["calculation_type"].lower(),
                                  data_from_toml["fields"][field]["following_calculation"].lower(),
-                                 return_none_on_text(data_from_toml["fields"][field]["front_name"]),)
+                                 return_none_on_text(data_from_toml["fields"][field]["front_name"]),
+                                 alias_for_count)
 
         if "base_table" in data_from_toml.keys():
             if true_false_converter(data_from_toml["base_table"]) is True:
@@ -124,7 +133,68 @@ class OlapStructureGenerator:
 
     def get_dimension_table_list(self) -> list[str]:
         """Returns a list of dimension table names"""
-        return list(self.tables_collection["dimension_tables"].keys())
+        return self.tables_collection.get_dimension_table_names()
+
+    def get_tables_with_field_and_optional_calculation(self,
+                                                       field_name: str,
+                                                       calculation: str | None,
+                                                       white_tables: dict | None = None) -> dict:
+        """
+        Returns tables with specified fields and optional calculations
+
+        If calculated field is not directly in table (for example in dimension table), it will suggest join
+
+        :param field_name: name of field
+        :param calculation: optional calculation
+        :param white_tables: optional if it's not none, iterate only through those tables
+        :return:
+        """
+        tables_with_fields: list[str] = []
+
+        d = {}
+
+        # if white_tables is None or len(white_tables.keys()) == 0:
+        #     tables_with_fields = self.get_data_tables()
+        # else:
+        #     tables_with_fields = list(white_tables.keys())
+
+        # dimension_table_name: {service_key: service_key, fields: []}
+
+        # if not None, returns dict with {table_name: service_key_name}
+        dimension_table_with_alias: dict | None = self.tables_collection.get_dimension_table_with_field(field_name)
+        table_name: str = ""
+        self.tables_collection.get_data_tables_with_select_fields(field_name)
+        self.tables_collection.get_tables_with_calculation(field_name, calculation, d)
+        # 1. Выбрать таблицы, которые имеют все для select и where (причем считать оставшиеся поля без расчетов только
+        # для select)
+        # 2. Если есть калькуляции
+        # 2.1. Проверить таблицы, где осталось 0 полей без калькуляций, есть ли все поля для расчета
+        # 2.2. Проверить таблицы начиная с меньшего кол-ва оставшихся полей, можно ли в дальнейшем делать калькуляцию
+        # 2.3. Делать калькуляцию на таблицах без калькуляций
+
+        for table in tables_with_fields:
+            pass
+
+        return d
+
+    def get_all_tables(self) -> list[str]:
+        """
+        Returns all tables
+        :return: list of all tables
+        """
+        all_tables: list[str] = []
+
+        all_tables.extend(self.get_dimension_table_list())
+        all_tables.extend(self.get_data_tables())
+
+        return all_tables
+
+    def get_data_tables(self) -> list[str]:
+        """
+        Returns fact tables
+        :return:
+        """
+        return list(self.tables_collection.get_data_table_names())
 
 
 if __name__ == "__main__":

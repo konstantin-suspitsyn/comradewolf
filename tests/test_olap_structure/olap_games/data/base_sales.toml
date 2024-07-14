@@ -4,7 +4,7 @@ database = "olap_test"
 base_table = "true"
 
 [fields]
-sk_id_game = {field_type = "service_key", alias = "sk_id_game", calculation_type = "none", following_calculation = "none", front_name = "none"}
+sk_id_game = {field_type = "service_key", alias = "sk_id_game", calculation_type = "none", following_calculation = "none", front_name = "none", alias_for_count=["bk_id_game", ""]}
 release_date = {field_type = "dimension", alias = "release_date", calculation_type = "none", following_calculation = "none", front_name = "Release date"}
 english = {field_type = "dimension", alias = "english", calculation_type = "none", following_calculation = "none", front_name = "Has english"}
 sk_id_developer = {field_type = "service_key", alias = "sk_id_developer", calculation_type = "none", following_calculation = "none", front_name = "none"}

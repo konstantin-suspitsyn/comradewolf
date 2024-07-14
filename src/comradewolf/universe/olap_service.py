@@ -1,3 +1,5 @@
+from collections import UserDict
+
 from comradewolf.universe.olap_structure_generator import OlapStructureGenerator
 from comradewolf.utils.olap_data_types import OlapFrontendToBackend
 
@@ -35,9 +37,19 @@ class OlapService:
 
         select_fields, calculation_fields,  where_fields = self.sort_frontend_into_categories()
 
-        # Should contain tables
-        # {"table_name": {"unused_fields": [list_], }}
-        tables_for_select: {}
+        # This is priority list of tables
+        all_tables: list = []
+
+        field_name: str = ""
+        calculation: str | None = None
+        short_tables_list: list = []
+
+        for table in self.olap_structure.get_tables_with_field_and_optional_calculation(field_name, calculation, short_tables_list):
+            all_tables
+
+        for calc_field_dict in calculation_fields["fact"]:
+            for field in calc_field_dict.keys():
+                pass
 
 
 
