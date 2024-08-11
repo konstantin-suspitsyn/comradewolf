@@ -233,3 +233,30 @@ def return_bool_on_text(text: str) -> bool:
         return False
 
     raise ValueError("Not a bool like value")
+
+
+def create_field_with_calculation(field: str, calculation: str) -> str:
+    """
+
+    :param field:
+    :param calculation:
+    :return:
+    """
+    return f"{field}__{calculation}"
+
+
+def get_calculation_from_field_name(field_name: str) -> tuple[str, str | None]:
+    """
+
+    :param field_name:
+    :return: field_name_without_calculation, calculation
+    """
+
+    calculation = None
+    field_name = field_name
+
+    if "__" in field_name:
+        calculation = field_name.split("__")[-1]
+        field_name = field_name[:-len(calculation) - 2]
+
+    return field_name, calculation

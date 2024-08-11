@@ -2,6 +2,7 @@ from collections import UserDict
 
 from comradewolf.utils.enums_and_field_dicts import OlapFieldTypes, OlapFollowingCalculations, OlapCalculations
 from comradewolf.utils.exceptions import OlapCreationException, OlapTableExists, ConditionFieldsError, OlapException
+from comradewolf.utils.utils import create_field_with_calculation, get_calculation_from_field_name
 
 NO_FRONT_NAME_ERROR = r"Front name should be specified only when field_type is dimension"
 
@@ -58,6 +59,9 @@ class OlapDataTable(UserDict):
         if calculation_type == "none":
             self.__check_front_name(field_type, front_name)
 
+        if calculation_type is not None:
+            alias_name = create_field_with_calculation(alias_name, calculation_type)
+
         self.data["fields"][alias_name] = {
             "field_name": field_name,
             "field_type": field_type,
@@ -99,17 +103,20 @@ class OlapDataTable(UserDict):
             raise OlapCreationException(f"{following_calculation} is not one of [{following_calculation_for_error}]")
 
     @staticmethod
-    def __check_calculation_type(calculation_type: str) -> None:
+    def __check_calculation_type(calculation_type: str | None) -> None:
         """
         Should be one of OlapCalculations
         :param calculation_type:
         :return:
         """
 
+        if calculation_type is None:
+            return
+
         olap_calculations: list[str] = [f.value for f in OlapCalculations]
         olap_calculations_for_error: str = ", ".join(olap_calculations)
 
-        if (calculation_type not in olap_calculations) or (calculation_type is None):
+        if calculation_type not in olap_calculations:
             raise OlapCreationException(f"{olap_calculations} is not one of [{olap_calculations_for_error}]")
 
     @staticmethod
@@ -254,8 +261,12 @@ class ShortTablesCollectionForSelect(UserDict):
         :param select_field_alias:
         :return:
         """
-        if select_field_alias in self.data[table_name]["select"]:
+        if select_field_alias in self.data[table_name]["all_selects"]:
             self.data[table_name]["all_selects"].remove(select_field_alias)
+
+    # #TODO: CREATE THIS STRUCTURE AFTER REFACTOR
+    # def create_basic_structure_for_all_fact_tables(self, tables_collection: OlapTablesCollection) -> None:
+    #     pass
 
     def create_basic_structure(self, table_name: str, table_properties: dict) -> None:
         """
@@ -299,7 +310,9 @@ class ShortTablesCollectionForSelect(UserDict):
     def add_aggregation_field(self, table_name: str, field_name_alias: str, calculation: str, frontend_field_name: str,
                               frontend_aggregation: str) -> None:
 
-        self.data[table_name]["aggregations"].append({"alias_field_name": field_name_alias,
+        field_name_alias_with_calc = create_field_with_calculation(field_name_alias, calculation)
+
+        self.data[table_name]["aggregations"].append({"alias_field_name": field_name_alias_with_calc,
                                                       "frontend_field_name": frontend_field_name,
                                                       "alias_calculation": calculation,
                                                       "frontend_aggregation": frontend_aggregation, })
@@ -386,6 +399,15 @@ class ShortTablesCollectionForSelect(UserDict):
         :return:
         """
         return self.data[table_name]["all_selects"]
+
+    def generate_complete_structure(self, fact_tables: dict) -> None:
+        """
+        Generates base for all tables for select
+        :param fact_tables: 
+        :return: 
+        """
+        for fact_table_name in fact_tables:
+            self.create_basic_structure(fact_table_name, fact_tables[fact_table_name])
 
 
 class OlapTablesCollection(UserDict):
@@ -478,75 +500,6 @@ class OlapTablesCollection(UserDict):
 
         return None
 
-    def get_data_tables_with_select_fields(self, field_name_alias: str, is_where: bool = False,
-                                           condition: dict | None = None,
-                                           shorter_table_collection: ShortTablesCollectionForSelect | None = None) \
-            -> ShortTablesCollectionForSelect:
-        """
-        Shows field that have select field
-
-        If we have provided shorter_table_collection, it will use collection and iterate over it
-        If select field was not found, it will remove field
-
-        :param condition: where condition. Only needed when is_where == True
-        :param is_where: if True than it's not select. It's where
-        :param field_name_alias:
-        :param shorter_table_collection:
-        :return: updated ShortTablesCollectionForSelect
-        """
-
-        if is_where and (condition is None or len(condition.keys()) == 0):
-            error_message: str = "Where condition id None or Empty"
-            raise ConditionFieldsError(error_message)
-
-        dimension_table: dict | None
-        list_of_fact_tables: list[str]
-        table_collection: ShortTablesCollectionForSelect
-
-        if shorter_table_collection is None:
-            table_collection = self.__create_short_table_collection()
-
-        else:
-            table_collection = shorter_table_collection.copy()
-
-        dimension_table_and_service_key = self.get_dimension_table_with_field(field_name_alias)
-        list_of_fact_tables = list(table_collection.keys())
-
-        for select_table_name in list_of_fact_tables:
-
-            is_field_in_table: bool
-            is_service_key_in_table: bool = False
-
-            is_field_in_table = self.field_in_data_table(field_name_alias, select_table_name)
-
-            if dimension_table_and_service_key is not None and is_field_in_table:
-                is_service_key_in_table = self.field_in_data_table(dimension_table_and_service_key[1],
-                                                                   select_table_name)
-
-            if is_service_key_in_table and not is_field_in_table:
-                # Field is not in fact table, but you can join dimension table
-                if is_where:
-                    table_collection.add_where_with_join(select_table_name, field_name_alias,
-                                                         dimension_table_and_service_key[0],
-                                                         dimension_table_and_service_key[1], condition)
-                else:
-                    table_collection.add_join_field_for_select(select_table_name, field_name_alias,
-                                                               dimension_table_and_service_key[0],
-                                                               dimension_table_and_service_key[1])
-
-            if is_field_in_table:
-                # Field is not in fact table
-                if is_where:
-                    table_collection.add_where(select_table_name, field_name_alias, condition)
-                else:
-                    table_collection.add_select_field(select_table_name, field_name_alias)
-
-            if not is_field_in_table and not is_service_key_in_table:
-                # If no field and no possible joins, we remove table from ShortTablesCollectionForSelect
-                table_collection.remove_table(select_table_name)
-
-        return table_collection
-
     def __create_short_table_collection(self):
         """
 
@@ -557,131 +510,135 @@ class OlapTablesCollection(UserDict):
             table_collection.create_basic_structure(table_name_temp, self.data["data_tables"][table_name_temp])
         return table_collection
 
-    def field_in_data_table(self, field_alias_name: str, table_name: str) -> bool:
+    def is_field_in_data_table(self, field_alias_name: str, table_name: str, calculation: str | None = None) -> bool:
         """
         Checks if field is in data table
+        :param calculation:
         :param field_alias_name: alias_name
         :param table_name:
         :return:
         """
         has_field: bool = False
 
+        if calculation is not None:
+            field_alias_name = f"{field_alias_name}__{calculation}"
+
         if field_alias_name in self.data["data_tables"][table_name]["fields"]:
-            has_field = True
+
+            if calculation == self.data["data_tables"][table_name]["fields"][field_alias_name]["calculation_type"]:
+                has_field = True
 
         return has_field
 
-    def get_tables_with_calculation(self, field_name_alias: str, calculation: str,
-                                    shorter_table_collection: ShortTablesCollectionForSelect | None = None):
-        """
-        Checks if field can be calculated in table
-
-        There are 3 types of possible outcomes:
-            1. Field without calculation found - we can use it with the lowest priority
-            2. Field with calculation found, but not all select fields were used. Need check if calculation can be used
-                over calculation. If yes - we can use it with the priority higher than p. 1
-            3. Field with calculation found, all select fields were used - highest priority
-            ?4. Field that can use calculation with join
-        :param field_name_alias:
-        :param calculation:
-        :param shorter_table_collection:
-        :return:
-        """
-
-        table_collection: ShortTablesCollectionForSelect
-
-        if shorter_table_collection is None:
-            table_collection = self.__create_short_table_collection()
-        else:
-            table_collection = shorter_table_collection.copy()
-
-        is_in_dim: bool = False
-        join_table: dict = {}
-
-        # 1.1. If service key not in table, remove table from table_collection
-        remove_tables: list[str] = []
-
-        # 1. Check if field in dimension table
-        if self.get_dimension_table_with_field(field_name_alias) is not None:
-
-            is_in_dim = True
-            join_table["table_name"] = self.get_dimension_table_with_field(field_name_alias)
-            join_table["sk"] = self.get_dimension_table_service_key(join_table["table_name"])
-
-            can_use_sk: bool = False
-
-            # Can we use service key for count
-            if (calculation in [OlapCalculations.COUNT, OlapCalculations.SUM]) & \
-                    self.get_is_sk_for_count(join_table["table_name"], field_name_alias):
-                can_use_sk = True
-
-            for table in table_collection.keys():
-                # Service key in the table. We can join with dimension
-                #   or make calculation with sk if can_use_sk == True
-                has_sk: bool = False
-                # If calculation already in fact table
-                has_ready_calculation: bool = False
-                # TODO: check if field itself in data
-                if self.field_in_data_table(join_table["sk"], table):
-                    has_sk = True
-                if self.field_in_data_table(field_name_alias, table):
-                    if self.get_data_table_calculation(table, field_name_alias) == calculation:
-                        has_ready_calculation = True
-
-                if (not has_ready_calculation) and (not has_sk):
-                    # There is no sk or field in table
-                    remove_tables.append(table)
-                    continue
-
-                if has_ready_calculation:
-                    # 1.1.1 If all select fields were used -> just use select. continue
-                    if len(table_collection[table]["all_selects"]) == 0:
-                        table_collection.add_select_field(table, field_name_alias, calculation)
-                        continue
-                    else:
-                        # 1.1.2 If NOT all select fields were used:
-                        # 1.1.2.1. Check if we can use further calculation. If yes, add needed calculation. continue
-                        if self.get_data_table_further_calculation(table, field_name_alias) is not None:
-                            # TODO: check if it returns None
-                            current_calculation = self.get_data_table_further_calculation(table, field_name_alias)
-                            table_collection.add_select_field(table, field_name_alias, current_calculation)
-                            continue
-                        else:
-                            # 1.1.2.2. Check if we can use further calculation. If not,
-                            # change has_ready_calculation to False
-                            has_ready_calculation = False
-
-                if has_sk & can_use_sk & (has_ready_calculation == False):
-                    if can_use_sk:
-                        # Add to calculation
-                        table_collection.add_aggregation_field(table, join_table["sk"], calculation,
-                                                               field_name_alias, calculation)
-                    else:
-                        # Join and add to calculation
-                        table_collection.add_join_field_for_aggregation(table, field_name_alias, calculation,
-                                                                        join_table["table_name"], join_table["sk"])
-                    continue
-
-                else:
-                    remove_tables.append(table)
-
-        # 2. Field is not in dimension. It should be in fact field
-        else:
-            for table in table_collection.keys():
-                if not self.field_in_data_table(field_name_alias, table):
-                    remove_tables.append(table)
-                else:
-                    if self.get_data_table_calculation(table, field_name_alias) == calculation:
-                        # TODO: REFACTOR. SAME CODE
-                        if len(table_collection.get_all_selects(table)) == 0:
-                            table_collection.add_select_field(table, field_name_alias, calculation)
-                            continue
-                        else:
-                            table_collection.add_aggregation_field(table, field_name_alias, calculation,
-                                                                   field_name_alias, calculation)
-
-        for table in remove_tables:
-            del table_collection[table]
+    # def get_tables_with_calculation(self, field_name_alias: str, calculation: str,
+    #                                 shorter_table_collection: ShortTablesCollectionForSelect | None = None):
+    #     """
+    #     Checks if field can be calculated in table
+    #
+    #     There are 3 types of possible outcomes:
+    #         1. Field without calculation found - we can use it with the lowest priority
+    #         2. Field with calculation found, but not all select fields were used. Need check if calculation can be used
+    #             over calculation. If yes - we can use it with the priority higher than p. 1
+    #         3. Field with calculation found, all select fields were used - highest priority
+    #         ?4. Field that can use calculation with join
+    #     :param field_name_alias:
+    #     :param calculation:
+    #     :param shorter_table_collection:
+    #     :return:
+    #     """
+    #
+    #     table_collection: ShortTablesCollectionForSelect
+    #
+    #     if shorter_table_collection is None:
+    #         table_collection = self.__create_short_table_collection()
+    #     else:
+    #         table_collection = shorter_table_collection.copy()
+    #
+    #     join_table: dict = {}
+    #
+    #     # 1.1. If service key not in table, remove table from table_collection
+    #     tables_to_delete_from_short_collection: list[str] = []
+    #
+    #     # 1. Check if field in dimension table
+    #     if self.get_dimension_table_with_field(field_name_alias) is not None:
+    #
+    #         join_table["table_name"] = self.get_dimension_table_with_field(field_name_alias)
+    #         join_table["sk"] = self.get_dimension_table_service_key(join_table["table_name"])
+    #
+    #         can_use_sk: bool = False
+    #
+    #         # Can we use service key for count
+    #         if (calculation in [OlapCalculations.COUNT, OlapCalculations.COUNT_DISTINCT]) & \
+    #                 self.get_is_sk_for_count(join_table["table_name"], field_name_alias):
+    #             can_use_sk = True
+    #
+    #         for table in table_collection.keys():
+    #             # Service key in the table. We can join with dimension
+    #             #   or make calculation with sk if can_use_sk == True
+    #             has_sk: bool = False
+    #             # If calculation already in fact table
+    #             has_ready_calculation: bool = False
+    #             # TODO: check if field itself in data
+    #             if self.is_field_in_data_table(join_table["sk"], table, None):
+    #                 has_sk = True
+    #             if self.is_field_in_data_table(field_name_alias, table, None):
+    #                 if self.get_data_table_calculation(table, field_name_alias) == calculation:
+    #                     has_ready_calculation = True
+    #
+    #             if (not has_ready_calculation) and (not has_sk):
+    #                 # There is no sk or field in table
+    #                 tables_to_delete_from_short_collection.append(table)
+    #                 continue
+    #
+    #             if has_ready_calculation:
+    #                 # 1.1.1 If all select fields were used -> just use select. continue
+    #                 if len(table_collection[table]["all_selects"]) == 0:
+    #                     table_collection.add_select_field(table, field_name_alias, calculation)
+    #                     continue
+    #                 else:
+    #                     # 1.1.2 If NOT all select fields were used:
+    #                     # 1.1.2.1. Check if we can use further calculation. If yes, add needed calculation. continue
+    #                     if self.get_data_table_further_calculation(table, field_name_alias) is not None:
+    #                         # TODO: check if it returns None
+    #                         current_calculation = self.get_data_table_further_calculation(table, field_name_alias)
+    #                         table_collection.add_select_field(table, field_name_alias, current_calculation)
+    #                         continue
+    #                     else:
+    #                         # 1.1.2.2. Check if we can use further calculation. If not,
+    #                         # change has_ready_calculation to False
+    #                         has_ready_calculation = False
+    #
+    #             if has_sk & can_use_sk & (has_ready_calculation == False):
+    #                 if can_use_sk:
+    #                     # Add to calculation
+    #                     table_collection.add_aggregation_field(table, join_table["sk"], calculation,
+    #                                                            field_name_alias, calculation)
+    #                 else:
+    #                     # Join and add to calculation
+    #                     table_collection.add_join_field_for_aggregation(table, field_name_alias, calculation,
+    #                                                                     join_table["table_name"], join_table["sk"])
+    #                 continue
+    #
+    #             else:
+    #                 tables_to_delete_from_short_collection.append(table)
+    #
+    #     # 2. Field is not in dimension. It should be in fact field
+    #     else:
+    #         for table in table_collection.keys():
+    #             if not self.is_field_in_data_table(field_name_alias, table, None):
+    #                 tables_to_delete_from_short_collection.append(table)
+    #             else:
+    #                 if self.get_data_table_calculation(table, field_name_alias) == calculation:
+    #                     # TODO: REFACTOR. SAME CODE
+    #                     if len(table_collection.get_all_selects(table)) == 0:
+    #                         table_collection.add_select_field(table, field_name_alias, calculation)
+    #                         continue
+    #                     else:
+    #                         table_collection.add_aggregation_field(table, field_name_alias, calculation,
+    #                                                                field_name_alias, calculation)
+    #
+    #     for table in tables_to_delete_from_short_collection:
+    #         del table_collection[table]
 
     def get_dimension_table_service_key(self, table_name: str) -> str:
         """
@@ -708,23 +665,43 @@ class OlapTablesCollection(UserDict):
 
         return self.data["dimension_tables"][table_name]["fields"][field_name_alias]["use_sk_for_count"]
 
-    def get_data_table_calculation(self, table_name: str, field_name_alias: str) -> str | None:
+    def get_data_table_calculation(self, table_name: str, field_name_alias: str) -> list[str]:
         """
         Returns calculation for field in table
         :param table_name:
         :param field_name_alias:
         :return:
         """
-        return self.data["data_tables"][table_name]["fields"][field_name_alias]["calculation_type"]
 
-    def get_data_table_further_calculation(self, table_name: str, field_name_alias: str) -> str | None:
+        calculation: list[str] = []
+
+        for field in self.data["data_tables"][table_name]["fields"]:
+
+            field_name, current_calculation = get_calculation_from_field_name(field)
+
+            if (field_name == field_name_alias) & (current_calculation is not None):
+                calculation.append(current_calculation)
+
+        return calculation
+
+    def get_data_table_further_calculation(self, table_name: str, field_name_alias: str, calculation: str) -> str | None:
         """
         Returns can it be used for further calculation
         :param table_name:
         :param field_name_alias:
         :return:
         """
+
+        field_name_alias = create_field_with_calculation(field_name_alias, calculation)
+
         return self.data["data_tables"][table_name]["fields"][field_name_alias]["following_calculation"]
+
+    def get_fact_tables_collection(self) -> dict:
+        """
+        Returns tables collection of fact tables
+        :return: 
+        """
+        return self.data["data_tables"]
 
 
 class OlapFrontend(UserDict):
@@ -765,6 +742,8 @@ class OlapFrontendToBackend(UserDict):
     """
     Type converts from Frontend to Backend for Olap to create SELECT
     """
+
+    #TODO: Add classes for Inner Data Structures
 
     def __init__(self, frontend: dict) -> None:
         """

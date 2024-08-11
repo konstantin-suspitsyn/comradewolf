@@ -86,9 +86,8 @@ class OlapStructureGenerator:
             data_table.add_field(field,
                                  return_none_on_text(data_from_toml["fields"][field]["alias"]),
                                  return_none_on_text(data_from_toml["fields"][field]["field_type"]),
-                                 data_from_toml["fields"][field]["calculation_type"].lower(),
-                                 self.__transform_following_calculation(data_from_toml["fields"][field]
-                                                                        ["following_calculation"]),
+                                 self.__transform_calculation(data_from_toml["fields"][field]["calculation_type"]),
+                                 self.__transform_calculation(data_from_toml["fields"][field]["following_calculation"]),
                                  return_none_on_text(data_from_toml["fields"][field]["front_name"])
                                  )
 
@@ -147,48 +146,6 @@ class OlapStructureGenerator:
         """Returns a list of dimension table names"""
         return self.tables_collection.get_dimension_table_names()
 
-    def get_tables_with_field_and_optional_calculation(self,
-                                                       field_name: str,
-                                                       calculation: str | None,
-                                                       white_tables: dict | None = None) -> dict:
-        """
-        Returns tables with specified fields and optional calculations
-
-        If calculated field is not directly in table (for example in dimension table), it will suggest join
-
-        :param field_name: name of field
-        :param calculation: optional calculation
-        :param white_tables: optional if it's not none, iterate only through those tables
-        :return:
-        """
-        tables_with_fields: list[str] = []
-
-        d = {}
-
-        # if white_tables is None or len(white_tables.keys()) == 0:
-        #     tables_with_fields = self.get_data_tables()
-        # else:
-        #     tables_with_fields = list(white_tables.keys())
-
-        # dimension_table_name: {service_key: service_key, fields: []}
-
-        # if not None, returns dict with {table_name: service_key_name}
-        dimension_table_with_alias: dict | None = self.tables_collection.get_dimension_table_with_field(field_name)
-        table_name: str = ""
-        c = self.tables_collection.get_data_tables_with_select_fields(field_name)
-        self.tables_collection.get_tables_with_calculation(field_name, calculation, None)
-        # 1. Выбрать таблицы, которые имеют все для select и where (причем считать оставшиеся поля без расчетов только
-        # для select)
-        # 2. Если есть калькуляции
-        # 2.1. Проверить таблицы, где осталось 0 полей без калькуляций, есть ли все поля для расчета
-        # 2.2. Проверить таблицы начиная с меньшего кол-ва оставшихся полей, можно ли в дальнейшем делать калькуляцию
-        # 2.3. Делать калькуляцию на таблицах без калькуляций
-
-        for table in tables_with_fields:
-            pass
-
-        return d
-
     def get_all_tables(self) -> list[str]:
         """
         Returns all tables
@@ -209,7 +166,7 @@ class OlapStructureGenerator:
         return list(self.tables_collection.get_data_table_names())
 
     @staticmethod
-    def __transform_following_calculation(following_calculation: str) -> str | None:
+    def __transform_calculation(following_calculation: str) -> str | None:
         """
         Convert following_calculation to correct value
         :param following_calculation:
@@ -228,6 +185,13 @@ class OlapStructureGenerator:
             raise ValueError(f"Invalid following_calculation: {following_calculation}")
 
         return following_calculation.lower()
+
+    def get_tables_collection(self) -> OlapTablesCollection:
+        """
+        Returns table collection
+        :return:
+        """
+        return self.tables_collection
 
 
 if __name__ == "__main__":

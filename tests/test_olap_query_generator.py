@@ -3,15 +3,15 @@ from comradewolf.universe.olap_structure_generator import OlapStructureGenerator
 from comradewolf.utils.olap_data_types import OlapFrontendToBackend
 from tests.constants_for_testing import get_olap_games_folder
 
-data_from_frontend: dict = {'SELECT': [{'fieldName': 'english'},
-                                       {'fieldName': 'pcs'},
-                                       {'fieldName': 'bk_id_game'}],
-                            'CALCULATION': [{'fieldName': 'achievements', 'calculation': 'SUM'},
-                                            {'fieldName': 'pcs', 'calculation': 'SUM'},
-                                            {'fieldName': 'price', 'calculation': 'SUM'}],
-                            'WHERE': [{'fieldName': 'achievements',
+data_from_frontend: dict = {'SELECT': [{'field_name': 'year'},
+                                       {'field_name': 'pcs'},
+                                       {'field_name': 'bk_id_game'}],
+                            'CALCULATION': [{'field_name': 'achievements', 'calculation': 'SUM'},
+                                            {'field_name': 'pcs', 'calculation': 'SUM'},
+                                            {'field_name': 'price', 'calculation': 'SUM'}],
+                            'WHERE': [{'field_name': 'achievements',
                                        'where': '>', 'condition': '5'},
-                                      {'fieldName': 'year',
+                                      {'field_name': 'year',
                                        'where': '=', 'condition': '2024'}]}
 
 
@@ -21,8 +21,9 @@ data_from_frontend: dict = {'SELECT': [{'fieldName': 'english'},
 def data_dimension_table() -> None:
     olap_structure_generator: OlapStructureGenerator = OlapStructureGenerator(get_olap_games_folder())
     frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(data_from_frontend)
-    olap_service: OlapService = OlapService(frontend_to_backend_type, olap_structure_generator)
-    olap_service.generate_select()
+    olap_service: OlapService = OlapService()
+    olap_service.generate_pre_select_collection(frontend_to_backend_type,
+                                                olap_structure_generator.get_tables_collection())
     print(get_olap_games_folder())
 
 
