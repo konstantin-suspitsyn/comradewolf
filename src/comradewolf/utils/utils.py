@@ -217,3 +217,19 @@ def return_none_on_text(text: str) -> str | None:
     if text.lower() == "none":
         return None
     return text
+
+
+def return_bool_on_text(text: str) -> bool:
+    """
+    If "none" is given, returns None
+    :param text:
+    :return:
+    """
+
+    if text.lower() == "true":
+        return True
+
+    if text.lower() == "false":
+        return False
+
+    raise ValueError("Not a bool like value")

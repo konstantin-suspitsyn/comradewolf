@@ -3,17 +3,15 @@ from comradewolf.universe.olap_structure_generator import OlapStructureGenerator
 from comradewolf.utils.olap_data_types import OlapFrontendToBackend
 from tests.constants_for_testing import get_olap_games_folder
 
-data_from_frontend: dict = {'SELECT': [{'tableName': 'olap_test.games_olap.base_sales', 'fieldName': 'english'},
-                                       {'tableName': 'olap_test.games_olap.base_sales', 'fieldName': 'pcs'},
-                                       {'tableName': 'olap_test.games_olap.dim_game', 'fieldName': 'bk_id_game'}],
-                            'CALCULATION': [{'tableName': 'olap_test.games_olap.base_sales',
-                                             'fieldName': 'achievements', 'calculation': 'SUM'},
-                                            {'tableName': 'olap_test.games_olap.base_sales', 'fieldName': 'pcs',
-                                             'calculation': 'SUM'}, {'tableName': 'olap_test.games_olap.base_sales',
-                                                                     'fieldName': 'price', 'calculation': 'SUM'}],
-                            'WHERE': [{'tableName': 'olap_test.games_olap.base_sales', 'fieldName': 'achievements',
+data_from_frontend: dict = {'SELECT': [{'fieldName': 'english'},
+                                       {'fieldName': 'pcs'},
+                                       {'fieldName': 'bk_id_game'}],
+                            'CALCULATION': [{'fieldName': 'achievements', 'calculation': 'SUM'},
+                                            {'fieldName': 'pcs', 'calculation': 'SUM'},
+                                            {'fieldName': 'price', 'calculation': 'SUM'}],
+                            'WHERE': [{'fieldName': 'achievements',
                                        'where': '>', 'condition': '5'},
-                                      {'tableName': 'olap_test.games_olap.base_sales', 'fieldName': 'year',
+                                      {'fieldName': 'year',
                                        'where': '=', 'condition': '2024'}]}
 
 

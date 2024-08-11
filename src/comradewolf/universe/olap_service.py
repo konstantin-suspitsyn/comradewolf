@@ -69,13 +69,13 @@ class OlapService:
 
         # Generate all fields for select only
         for field_from_frontend in self.frontend_field.get_select():
-            if field_from_frontend["tableName"] in self.olap_structure.get_dimension_table_list():
+            if field_from_frontend["fieldName"] in self.olap_structure.get_dimension_field_aliases():
                 select_fields["dimension"].append(field_from_frontend["fieldName"])
             else:
                 select_fields["fact"].append(field_from_frontend["fieldName"])
         # Generate fields for calculation
         for field_from_frontend in self.frontend_field.get_calculation():
-            if field_from_frontend["tableName"] in self.olap_structure.get_dimension_table_list():
+            if field_from_frontend["fieldName"] in self.olap_structure.get_dimension_field_aliases():
                 calculation_fields["dimension"].append({field_from_frontend["fieldName"]: field_from_frontend[
                     "calculation"]})
             else:
@@ -83,7 +83,7 @@ class OlapService:
                     "calculation"]})
         # Generate where
         for field_from_frontend in self.frontend_field.get_where():
-            if field_from_frontend["tableName"] in self.olap_structure.get_dimension_table_list():
+            if field_from_frontend["fieldName"] in self.olap_structure.get_dimension_field_aliases():
                 where_fields["dimension"].append(field_from_frontend)
             else:
                 where_fields["fact"].append(field_from_frontend)

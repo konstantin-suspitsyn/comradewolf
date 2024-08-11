@@ -142,3 +142,11 @@ class ConditionFieldsError(Exception):
 
     def __init__(self, message: str):
         super().__init__(message)
+
+
+class OlapException(Exception):
+    """
+    Any exception
+    """
+    def __init__(self, message: str):
+        super().__init__(message)
