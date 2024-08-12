@@ -4,6 +4,8 @@ from comradewolf.utils.enums_and_field_dicts import OlapFieldTypes, OlapFollowin
 from comradewolf.utils.exceptions import OlapCreationException, OlapTableExists, ConditionFieldsError, OlapException
 from comradewolf.utils.utils import create_field_with_calculation, get_calculation_from_field_name
 
+ERROR_FOLLOWING_CALC_SPECIFIED_WITHOUT_CALC = "Following calculation specified, but no calculation type specified"
+
 NO_FRONT_NAME_ERROR = r"Front name should be specified only when field_type is dimension"
 
 SERVICE_KEY_EXISTS_ERROR_MESSAGE = r"Service key already exists"
@@ -38,7 +40,7 @@ class OlapDataTable(UserDict):
         """
         super().__init__({"table_name": table_name, "fields": {}})
 
-    def add_field(self, field_name: str, alias_name: str, field_type: str, calculation_type: str,
+    def add_field(self, field_name: str, alias_name: str, field_type: str, calculation_type: str | None,
                   following_calculation: str | None, front_name: str | None = None) \
             -> None:
         """
@@ -54,13 +56,12 @@ class OlapDataTable(UserDict):
 
         self.__check_field_type(field_type)
         self.__check_calculation_type(calculation_type)
-        if following_calculation is not None:
-            self.__check_following_calculation(calculation_type, following_calculation)
-        if calculation_type == "none":
-            self.__check_front_name(field_type, front_name)
-
         if calculation_type is not None:
             alias_name = create_field_with_calculation(alias_name, calculation_type)
+        if following_calculation is not None:
+            self.__check_following_calculation(calculation_type, following_calculation)
+        if calculation_type is None:
+            self.__check_front_name(field_type, front_name)
 
         self.data["fields"][alias_name] = {
             "field_name": field_name,
@@ -85,7 +86,7 @@ class OlapDataTable(UserDict):
             raise OlapCreationException(f"{field_type} is not one of [{field_type_for_error}]")
 
     @staticmethod
-    def __check_following_calculation(calculation_type: str, following_calculation: str) -> None:
+    def __check_following_calculation(calculation_type: str | None, following_calculation: str | None) -> None:
         """
         Should be one of OlapFollowingCalculations
         :param calculation_type:
@@ -96,8 +97,11 @@ class OlapDataTable(UserDict):
 
         following_calculation_for_error: str = ", ".join(following_calculations)
 
-        if calculation_type is None:
+        if (calculation_type is None) and (following_calculation is None):
             return
+
+        if (calculation_type is None) and (following_calculation is not None):
+            raise OlapCreationException(ERROR_FOLLOWING_CALC_SPECIFIED_WITHOUT_CALC)
 
         if following_calculation not in following_calculations:
             raise OlapCreationException(f"{following_calculation} is not one of [{following_calculation_for_error}]")

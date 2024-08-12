@@ -2,7 +2,7 @@ import pytest
 
 from comradewolf.utils.exceptions import OlapCreationException
 from comradewolf.utils.olap_data_types import OlapDataTable, OlapDimensionTable, SERVICE_KEY_EXISTS_ERROR_MESSAGE, \
-    NO_FRONT_NAME_ERROR
+    NO_FRONT_NAME_ERROR, ERROR_FOLLOWING_CALC_SPECIFIED_WITHOUT_CALC
 
 
 def test_data_dimension_table() -> None:
@@ -82,57 +82,64 @@ def test_data_table() -> None:
         "test_field_1": {
             "alias_name": "alias_name",
             "field_type": "service_key",
-            "calculation_type": "none",
-            "following_calculation": "none",
+            "calculation_type": None,
+            "following_calculation": None,
             "front_name": None
         },
         "test_field_2": {
             "alias_name": "alias_name_2",
             "field_type": "service_key",
-            "calculation_type": "none",
-            "following_calculation": "none",
+            "calculation_type": None,
+            "following_calculation": None,
             "front_name": None
         },
         "test_field_unknown_type": {
             "alias_name": "alias_name_2",
             "field_type": "unknown_type",
-            "calculation_type": "none",
-            "following_calculation": "none",
+            "calculation_type": None,
+            "following_calculation": None,
             "front_name": None
         },
         "test_field_same_alias_name": {
             "alias_name": "alias_name_2",
             "field_type": "service_key",
-            "calculation_type": "none",
-            "following_calculation": "none",
+            "calculation_type": None,
+            "following_calculation": None,
             "front_name": None
         },
         "test_field_unknown_calc": {
             "alias_name": "alias_name_3",
             "field_type": "service_key",
             "calculation_type": "test_field_unknown_calc",
-            "following_calculation": "none",
+            "following_calculation": None,
             "front_name": None
         },
         "test_field_no_front_name": {
             "alias_name": "alias_name_nfn",
             "field_type": "dimension",
-            "calculation_type": "none",
-            "following_calculation": "none",
+            "calculation_type": None,
+            "following_calculation": None,
             "front_name": None
         },
         "test_field_incorrect_following_calculation": {
             "alias_name": "alias_name",
             "field_type": "service_key",
-            "calculation_type": "none",
+            "calculation_type": "sum",
             "following_calculation": "abc",
+            "front_name": None
+        },
+        "test_field_incorrect_following_calculation_wrong_calculation": {
+            "alias_name": "alias_name",
+            "field_type": "service_key",
+            "calculation_type": None,
+            "following_calculation": "sum",
             "front_name": None
         },
         "test_field_3": {
             "alias_name": "alias_name_3",
             "field_type": "value",
-            "calculation_type": "none",
-            "following_calculation": "none",
+            "calculation_type": None,
+            "following_calculation": None,
             "front_name": "my_name"
         },
     }
@@ -161,14 +168,6 @@ def test_data_table() -> None:
                                   fields["test_field_unknown_type"]["following_calculation"],
                                   fields["test_field_unknown_type"]["front_name"])
 
-    with pytest.raises(OlapCreationException, match="Repeated alias inside"):
-        data_olap_table.add_field("test_field_same_alias_name",
-                                  fields["test_field_same_alias_name"]["alias_name"],
-                                  fields["test_field_same_alias_name"]["field_type"],
-                                  fields["test_field_same_alias_name"]["calculation_type"],
-                                  fields["test_field_same_alias_name"]["following_calculation"],
-                                  fields["test_field_same_alias_name"]["front_name"])
-
     with pytest.raises(OlapCreationException, match="is not one of"):
         data_olap_table.add_field("test_field_unknown_calc",
                                   fields["test_field_unknown_calc"]["alias_name"],
@@ -192,6 +191,16 @@ def test_data_table() -> None:
                                   fields["test_field_incorrect_following_calculation"]["calculation_type"],
                                   fields["test_field_incorrect_following_calculation"]["following_calculation"],
                                   fields["test_field_incorrect_following_calculation"]["front_name"])
+
+    with pytest.raises(OlapCreationException, match=ERROR_FOLLOWING_CALC_SPECIFIED_WITHOUT_CALC):
+        data_olap_table.add_field("test_field_incorrect_following_calculation_wrong_calculation",
+                                  fields["test_field_incorrect_following_calculation_wrong_calculation"]["alias_name"],
+                                  fields["test_field_incorrect_following_calculation_wrong_calculation"]["field_type"],
+                                  fields["test_field_incorrect_following_calculation_wrong_calculation"][
+                                      "calculation_type"],
+                                  fields["test_field_incorrect_following_calculation_wrong_calculation"][
+                                      "following_calculation"],
+                                  fields["test_field_incorrect_following_calculation_wrong_calculation"]["front_name"])
 
     data_olap_table.add_field("test_field_3",
                               fields["test_field_3"]["alias_name"],

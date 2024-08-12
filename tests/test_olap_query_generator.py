@@ -15,17 +15,11 @@ data_from_frontend: dict = {'SELECT': [{'field_name': 'year'},
                                        'where': '=', 'condition': '2024'}]}
 
 
-# print(data_from_frontend)
-
-
-def data_dimension_table() -> None:
+def test_data_dimension_table() -> None:
     olap_structure_generator: OlapStructureGenerator = OlapStructureGenerator(get_olap_games_folder())
     frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(data_from_frontend)
     olap_service: OlapService = OlapService()
     c = olap_service.generate_pre_select_collection(frontend_to_backend_type,
                                                     olap_structure_generator.get_tables_collection())
-    print(c)
 
-
-if __name__ == '__main__':
-    data_dimension_table()
+    assert len(c) == 1
