@@ -235,48 +235,15 @@ class ShortTablesCollectionForSelect(UserDict):
         short_tables_collection_for_select: dict = {}
         super().__init__(short_tables_collection_for_select)
 
-    def add_select_field(self, table_name: str, select_field_alias: str, calculation: str | None = None) -> None:
-        """
-        Adds select field to table
-        :param calculation:
-        :param table_name:
-        :param select_field_alias:
-        :return:
-        """
-
-        # Create table basic structure
-        if table_name not in self.data.keys():
-            self.create_basic_structure(table_name, self.data["data_tables"][table_name])
-
-        self.data[table_name]["select"].append({"alias_name": select_field_alias,
-                                                "field_name": select_field_alias,
-                                                "alias_calculation": calculation, })
-
-        self.__remove_select_field(table_name, select_field_alias)
-
-    def __remove_select_field(self, table_name: str, select_field_alias: str) -> None:
-        """
-
-        :param table_name:
-        :param select_field_alias:
-        :return:
-        """
-        if select_field_alias in self.data[table_name]["all_selects"]:
-            self.data[table_name]["all_selects"].remove(select_field_alias)
-
-    # #TODO: CREATE THIS STRUCTURE AFTER REFACTOR
-    # def create_basic_structure_for_all_fact_tables(self, tables_collection: OlapTablesCollection) -> None:
-    #     pass
-
     def create_basic_structure(self, table_name: str, table_properties: dict) -> None:
         """
         Creates basic structure for table
 
             self.data[table_name] = {
                 "select": [
-                            {"alias_name": select_field_alias,
-                             "field_name": select_field_alias,
-                             "alias_calculation": alias_calculation, }
+                            {"backend_field": select_field_alias,
+                            "frontend_field": select_field_alias,
+                            "frontend_calculation": calculation }
                           ],
                 "aggregations": [], # aggregations that should be made with existing fields
                 "joins": {"joined_table_name": {
@@ -307,15 +274,45 @@ class ShortTablesCollectionForSelect(UserDict):
                                                                          OlapFieldTypes.SERVICE_KEY.value, ]:
                 self.data[table_name]["all_selects"].append(field_alias)
 
+    def add_select_field(self, table_name: str, select_field_alias: str, calculation: str | None = None) -> None:
+        """
+        Adds select field to table
+        :param calculation:
+        :param table_name:
+        :param select_field_alias:
+        :return:
+        """
+
+        field_name: str = select_field_alias
+
+        if calculation is not None:
+            field_name = create_field_with_calculation(select_field_alias, calculation)
+
+        self.data[table_name]["select"].append({"backend_field": select_field_alias,
+                                                "frontend_field": select_field_alias,
+                                                "frontend_calculation": calculation, })
+
+        self.__remove_select_field(table_name, select_field_alias)
+
+    def __remove_select_field(self, table_name: str, select_field_alias: str) -> None:
+        """
+
+        :param table_name:
+        :param select_field_alias:
+        :return:
+        """
+        if select_field_alias in self.data[table_name]["all_selects"]:
+            self.data[table_name]["all_selects"].remove(select_field_alias)
+
     def add_aggregation_field(self, table_name: str, field_name_alias: str, calculation: str, frontend_field_name: str,
                               frontend_aggregation: str) -> None:
 
         field_name_alias_with_calc = create_field_with_calculation(field_name_alias, calculation)
 
-        self.data[table_name]["aggregations"].append({"alias_field_name": field_name_alias_with_calc,
-                                                      "frontend_field_name": frontend_field_name,
-                                                      "alias_calculation": calculation,
-                                                      "frontend_aggregation": frontend_aggregation, })
+        self.data[table_name]["aggregations"].append({"backend_field": field_name_alias_with_calc,
+                                                      "frontend_field": frontend_field_name,
+                                                      "backend_calculation": calculation,
+                                                      "frontend_calculation": frontend_aggregation, })
 
     def remove_table(self, select_table_name) -> None:
         """
@@ -341,9 +338,9 @@ class ShortTablesCollectionForSelect(UserDict):
                                                                "fields": []}
 
         self.data[table_name]["joins"][join_table_name]["fields"].append(
-            {"alias_name": field_alias_name,
-             "field_name": field_alias_name,
-             "alias_calculation": None, }
+            {"backend_field": field_alias_name,
+             "frontend_field": field_alias_name,
+             "frontend_calculation": None, }
         )
 
         self.__remove_select_field(table_name, service_key_for_join)
@@ -388,8 +385,8 @@ class ShortTablesCollectionForSelect(UserDict):
             }
 
             self.data[table_name]["aggregation_joins"][join_table_name]["fields"].append({
-                "alias_name": field_name_alias,
-                "calculation": current_calculation,
+                "frontend_field": field_name_alias,
+                "frontend_calculation": current_calculation,
             })
 
     def get_all_selects(self, table_name) -> list:
@@ -500,16 +497,6 @@ class OlapTablesCollection(UserDict):
 
         return None
 
-    def __create_short_table_collection(self):
-        """
-
-        :return:
-        """
-        table_collection = ShortTablesCollectionForSelect()
-        for table_name_temp in self.get_data_table_names():
-            table_collection.create_basic_structure(table_name_temp, self.data["data_tables"][table_name_temp])
-        return table_collection
-
     def is_field_in_data_table(self, field_alias_name: str, table_name: str, calculation: str | None = None) -> bool:
         """
         Checks if field is in data table
@@ -529,116 +516,6 @@ class OlapTablesCollection(UserDict):
                 has_field = True
 
         return has_field
-
-    # def get_tables_with_calculation(self, field_name_alias: str, calculation: str,
-    #                                 shorter_table_collection: ShortTablesCollectionForSelect | None = None):
-    #     """
-    #     Checks if field can be calculated in table
-    #
-    #     There are 3 types of possible outcomes:
-    #         1. Field without calculation found - we can use it with the lowest priority
-    #         2. Field with calculation found, but not all select fields were used. Need check if calculation can be used
-    #             over calculation. If yes - we can use it with the priority higher than p. 1
-    #         3. Field with calculation found, all select fields were used - highest priority
-    #         ?4. Field that can use calculation with join
-    #     :param field_name_alias:
-    #     :param calculation:
-    #     :param shorter_table_collection:
-    #     :return:
-    #     """
-    #
-    #     table_collection: ShortTablesCollectionForSelect
-    #
-    #     if shorter_table_collection is None:
-    #         table_collection = self.__create_short_table_collection()
-    #     else:
-    #         table_collection = shorter_table_collection.copy()
-    #
-    #     join_table: dict = {}
-    #
-    #     # 1.1. If service key not in table, remove table from table_collection
-    #     tables_to_delete_from_short_collection: list[str] = []
-    #
-    #     # 1. Check if field in dimension table
-    #     if self.get_dimension_table_with_field(field_name_alias) is not None:
-    #
-    #         join_table["table_name"] = self.get_dimension_table_with_field(field_name_alias)
-    #         join_table["sk"] = self.get_dimension_table_service_key(join_table["table_name"])
-    #
-    #         can_use_sk: bool = False
-    #
-    #         # Can we use service key for count
-    #         if (calculation in [OlapCalculations.COUNT, OlapCalculations.COUNT_DISTINCT]) & \
-    #                 self.get_is_sk_for_count(join_table["table_name"], field_name_alias):
-    #             can_use_sk = True
-    #
-    #         for table in table_collection.keys():
-    #             # Service key in the table. We can join with dimension
-    #             #   or make calculation with sk if can_use_sk == True
-    #             has_sk: bool = False
-    #             # If calculation already in fact table
-    #             has_ready_calculation: bool = False
-    #             # TODO: check if field itself in data
-    #             if self.is_field_in_data_table(join_table["sk"], table, None):
-    #                 has_sk = True
-    #             if self.is_field_in_data_table(field_name_alias, table, None):
-    #                 if self.get_data_table_calculation(table, field_name_alias) == calculation:
-    #                     has_ready_calculation = True
-    #
-    #             if (not has_ready_calculation) and (not has_sk):
-    #                 # There is no sk or field in table
-    #                 tables_to_delete_from_short_collection.append(table)
-    #                 continue
-    #
-    #             if has_ready_calculation:
-    #                 # 1.1.1 If all select fields were used -> just use select. continue
-    #                 if len(table_collection[table]["all_selects"]) == 0:
-    #                     table_collection.add_select_field(table, field_name_alias, calculation)
-    #                     continue
-    #                 else:
-    #                     # 1.1.2 If NOT all select fields were used:
-    #                     # 1.1.2.1. Check if we can use further calculation. If yes, add needed calculation. continue
-    #                     if self.get_data_table_further_calculation(table, field_name_alias) is not None:
-    #                         # TODO: check if it returns None
-    #                         current_calculation = self.get_data_table_further_calculation(table, field_name_alias)
-    #                         table_collection.add_select_field(table, field_name_alias, current_calculation)
-    #                         continue
-    #                     else:
-    #                         # 1.1.2.2. Check if we can use further calculation. If not,
-    #                         # change has_ready_calculation to False
-    #                         has_ready_calculation = False
-    #
-    #             if has_sk & can_use_sk & (has_ready_calculation == False):
-    #                 if can_use_sk:
-    #                     # Add to calculation
-    #                     table_collection.add_aggregation_field(table, join_table["sk"], calculation,
-    #                                                            field_name_alias, calculation)
-    #                 else:
-    #                     # Join and add to calculation
-    #                     table_collection.add_join_field_for_aggregation(table, field_name_alias, calculation,
-    #                                                                     join_table["table_name"], join_table["sk"])
-    #                 continue
-    #
-    #             else:
-    #                 tables_to_delete_from_short_collection.append(table)
-    #
-    #     # 2. Field is not in dimension. It should be in fact field
-    #     else:
-    #         for table in table_collection.keys():
-    #             if not self.is_field_in_data_table(field_name_alias, table, None):
-    #                 tables_to_delete_from_short_collection.append(table)
-    #             else:
-    #                 if self.get_data_table_calculation(table, field_name_alias) == calculation:
-    #                     # TODO: REFACTOR. SAME CODE
-    #                     if len(table_collection.get_all_selects(table)) == 0:
-    #                         table_collection.add_select_field(table, field_name_alias, calculation)
-    #                         continue
-    #                     else:
-    #                         table_collection.add_aggregation_field(table, field_name_alias, calculation,
-    #                                                                field_name_alias, calculation)
-    #
-    #     for table in tables_to_delete_from_short_collection:
-    #         del table_collection[table]
 
     def get_dimension_table_service_key(self, table_name: str) -> str:
         """
