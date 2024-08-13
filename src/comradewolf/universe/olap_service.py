@@ -213,7 +213,7 @@ class OlapService:
                     if is_where is False:
                         table_collection_with_select.add_select_field(fact_table_name, current_field)
                     else:
-                        table_collection_with_select.add_where(fact_table_name, fact_table_name,
+                        table_collection_with_select.add_where(fact_table_name, current_field,
                                                                front_field_dict)
                     continue
 

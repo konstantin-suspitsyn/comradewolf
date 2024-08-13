@@ -249,8 +249,8 @@ class ShortTablesCollectionForSelect(UserDict):
                             "frontend_field": select_field_alias,
                             "frontend_calculation": calculation }
                           ],
-                "aggregations": [], # aggregations that should be made with existing fields
-                "joins": {"joined_table_name": {
+                "aggregation": [], # aggregations that should be made with existing fields
+                "join_select": {"joined_table_name": {
                     "service_key": "field to join table",
                     "fields": [fields of joined table]}},
                 "join_where": {},
@@ -264,8 +264,8 @@ class ShortTablesCollectionForSelect(UserDict):
         """
         self.data[table_name] = {
             "select": [],
-            "aggregations": [],
-            "joins": {},
+            "aggregation": [],
+            "join_select": {},
             "aggregation_joins": {},
             "join_where": {},
             "self_where": {},
@@ -292,7 +292,7 @@ class ShortTablesCollectionForSelect(UserDict):
         if calculation is not None:
             field_name = create_field_with_calculation(select_field_alias, calculation)
 
-        self.data[table_name]["select"].append({"backend_field": select_field_alias,
+        self.data[table_name]["select"].append({"backend_field": field_name,
                                                 "frontend_field": select_field_alias,
                                                 "frontend_calculation": calculation, })
 
@@ -313,10 +313,10 @@ class ShortTablesCollectionForSelect(UserDict):
 
         field_name_alias_with_calc = create_field_with_calculation(field_name_alias, calculation)
 
-        self.data[table_name]["aggregations"].append({"backend_field": field_name_alias_with_calc,
-                                                      "frontend_field": frontend_field_name,
-                                                      "backend_calculation": calculation,
-                                                      "frontend_calculation": frontend_aggregation, })
+        self.data[table_name]["aggregation"].append({"backend_field": field_name_alias_with_calc,
+                                                     "frontend_field": frontend_field_name,
+                                                     "backend_calculation": calculation,
+                                                     "frontend_calculation": frontend_aggregation, })
 
     def remove_table(self, select_table_name) -> None:
         """
@@ -337,11 +337,11 @@ class ShortTablesCollectionForSelect(UserDict):
         :return:
         """
 
-        if join_table_name not in self.data[table_name]["joins"]:
-            self.data[table_name]["joins"][join_table_name] = {"service_key": service_key_for_join,
+        if join_table_name not in self.data[table_name]["join_select"]:
+            self.data[table_name]["join_select"][join_table_name] = {"service_key": service_key_for_join,
                                                                "fields": []}
 
-        self.data[table_name]["joins"][join_table_name]["fields"].append(
+        self.data[table_name]["join_select"][join_table_name]["fields"].append(
             {"backend_field": field_alias_name,
              "frontend_field": field_alias_name,
              "frontend_calculation": None, }
@@ -409,6 +409,54 @@ class ShortTablesCollectionForSelect(UserDict):
         """
         for fact_table_name in fact_tables:
             self.create_basic_structure(fact_table_name, fact_tables[fact_table_name])
+
+    def get_aggregations_without_join(self, table_name: str):
+        """
+        Get aggregations without join
+        :param table_name: 
+        :return: 
+        """
+        return self.data[table_name]["aggregation"]
+
+    def get_join_select(self, table_name: str):
+        """
+        Get join select field
+        :param table_name:
+        :return:
+        """
+        return self.data[table_name]["join_select"]
+
+    def get_selects(self, table_name: str):
+        """
+
+        :param table_name:
+        :return:
+        """
+        return self.data[table_name]["select"]
+
+    def get_aggregation_joins(self, table_name: str):
+        """
+        Get aggregation join fields
+        :param table_name:
+        :return:
+        """
+        return self.data[table_name]["aggregation_joins"]
+
+    def get_join_where(self, table_name: str):
+        """
+        Get join where fields
+        :param table_name:
+        :return:
+        """
+        return self.data[table_name]["join_where"]
+
+    def get_self_where(self, table_name: str):
+        """
+        Get where fields without join
+        :param table_name:
+        :return:
+        """
+        return self.data[table_name]["self_where"]
 
 
 class OlapTablesCollection(UserDict):
