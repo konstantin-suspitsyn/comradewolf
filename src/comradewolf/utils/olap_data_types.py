@@ -274,8 +274,7 @@ class ShortTablesCollectionForSelect(UserDict):
         }
 
         for field_alias in table_properties["fields"]:
-            if table_properties["fields"][field_alias]["field_type"] in [OlapFieldTypes.DIMENSION.value,
-                                                                         OlapFieldTypes.SERVICE_KEY.value, ]:
+            if table_properties["fields"][field_alias]["calculation_type"] is None:
                 self.data[table_name]["all_selects"].append(field_alias)
 
     def add_select_field(self, table_name: str, select_field_alias: str, calculation: str | None = None) -> None:

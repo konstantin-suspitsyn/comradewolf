@@ -150,7 +150,7 @@ class OlapService:
 
         # Field was calculated
         if has_ready_calculation:
-            if len(tables_collection[table_name]["all_selects"]) == 0:
+            if len(short_tables_collection[table_name]["all_selects"]) == 0:
                 short_tables_collection.add_select_field(table_name, current_field_name, current_calculation)
                 added_dimension = True
                 return short_tables_collection, added_dimension
