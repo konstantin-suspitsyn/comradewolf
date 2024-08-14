@@ -1,6 +1,9 @@
 from comradewolf.utils.enums_and_field_dicts import OlapCalculations
 from comradewolf.utils.olap_data_types import OlapFrontendToBackend, OlapTablesCollection, \
     ShortTablesCollectionForSelect
+from comradewolf.utils.utils import create_field_with_calculation
+
+FIELD_NAME_WITH_ALIAS = '{} as "{}"'
 
 SELECT = "SELECT"
 WHERE = "WHERE"
@@ -48,6 +51,15 @@ class OlapService:
                                                           calculations: list,
                                                           tables_collection: OlapTablesCollection) \
             -> ShortTablesCollectionForSelect:
+        """
+        Working with calculations from frontend fields
+        It adds calculation structure (with and without join) to ShortTablesCollectionForSelect and deletes
+        not suitable tables from ShortTablesCollectionForSelect
+        :param short_tables_collection: ShortTablesCollectionForSelect
+        :param calculations: list of calculations from frontend
+        :param tables_collection: OlapTablesCollectionForSelect
+        :return: ShortTablesCollectionForSelect but changed
+        """
 
         short_tables_collection: ShortTablesCollectionForSelect = short_tables_collection.copy()
 
@@ -130,6 +142,17 @@ class OlapService:
                                 short_tables_collection: ShortTablesCollectionForSelect,
                                 tables_collection: OlapTablesCollection) -> tuple[ShortTablesCollectionForSelect, bool]:
 
+        """
+        Adds calculation without join if possible
+        Field is in table itself
+        :param current_field_name: frontend field name
+        :param current_calculation: frontend calculation
+        :param table_name: backend table name
+        :param short_tables_collection: ShortTablesCollectionForSelect
+        :param tables_collection: tables from OlapTablesCollection
+        :return: tuple[ShortTablesCollectionForSelect, True if dimension was added or False otherwise]
+        """
+
         added_dimension: bool = False
         has_field_no_calculation: bool = tables_collection.is_field_in_data_table(current_field_name, table_name, None)
         has_ready_calculation: bool = tables_collection.is_field_in_data_table(current_field_name, table_name,
@@ -177,12 +200,12 @@ class OlapService:
                                                      tables_collection: OlapTablesCollection, is_where: bool = False) \
             -> ShortTablesCollectionForSelect:
         """
-
-        :param is_where:
+        Adds select and where structure to short tables collection
+        :param is_where: True or False for where
         :param short_tables_collection:
-        :param frontend_fields_select_or_where:
-        :param tables_collection:
-        :return:
+        :param frontend_fields_select_or_where: list of frontend fields of select or where
+        :param tables_collection: OlapTablesCollection
+        :return: ShortTablesCollectionForSelect
         """
 
         table_collection_with_select = short_tables_collection.copy()
@@ -251,8 +274,74 @@ class OlapService:
     def add_join_calculation(current_field_name: str, current_calculation: str, table_name: str, join_table: str,
                              service_key: str, short_tables_collection: ShortTablesCollectionForSelect) \
             -> tuple[ShortTablesCollectionForSelect, bool]:
-
+        """
+        Adds calculation with join if possible
+        Only works with dimension table calculations
+        :param current_field_name: frontend field name
+        :param current_calculation: frontend calculation
+        :param table_name: backend table name
+        :param join_table: backend join table
+        :param service_key: service key to join dimension and fact table
+        :param short_tables_collection: ShortTablesCollectionForSelect
+        :return: tuple[ShortTablesCollectionForSelect, True if join was added]
+        """
         short_tables_collection.add_join_field_for_aggregation(table_name, current_field_name, current_calculation,
                                                                join_table, service_key)
 
         return short_tables_collection, True
+
+    def generate_selects_from_collection(self, short_tables_collection: ShortTablesCollectionForSelect) -> str:
+        """
+        Generates select structure from short tables collection
+        :param short_tables_collection: should be created from self.generate_pre_select_collection()
+        :return:
+        """
+
+        for table in short_tables_collection:
+
+            # alias table name
+            short_table_name: str = table.split(".")[-1]
+
+            # Fields to put after select. Separate by comma
+            select_list: list[str] = []
+
+            # Fields to put after group by. Separate by comma
+            select_for_group_by: list[str] = []
+
+            # All field should be inner joined
+            # Structure {join_table_name: sk}
+            joins: dict = {}
+
+            # Add where and put AND between fields
+            where: list[str] = []
+
+            selects_inner_structure: list = short_tables_collection.get_selects(table)
+            aggregation_structure: list = short_tables_collection.get_aggregations_without_join(table)
+
+            def append_select_with_alias(_field: dict):
+                _backend_name: str = "{}.{}".format(short_table_name, _field["backend_field"])
+                _frontend_name: str = field["frontend_field"]
+                if field["frontend_calculation"] is not None:
+                    _frontend_name = create_field_with_calculation(_frontend_name, _field["frontend_calculation"])
+                select_list.append(FIELD_NAME_WITH_ALIAS.format(_backend_name, _frontend_name))
+
+                if len(aggregation_structure) > 0:
+                    select_for_group_by.append(_backend_name)
+
+            def append_aggregate_with_alias(_field: dict):
+                _backend_name: str = "{}({}.{})".format(_field["backend_calculation"], short_table_name,
+                                                        _field["backend_field"])
+                _frontend_name: str = field["frontend_field"]
+
+                select_list.append(FIELD_NAME_WITH_ALIAS.format(_backend_name, _frontend_name))
+
+            for field in selects_inner_structure:
+                append_select_with_alias(field)
+
+            for field in aggregation_structure:
+                append_aggregate_with_alias(field)
+
+            print(short_tables_collection)
+
+        return ""
+

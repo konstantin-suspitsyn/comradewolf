@@ -53,3 +53,6 @@ def test_short_tables_collection_for_select() -> None:
     assert len(short_table_only_base_group.get_aggregation_joins("olap_test.games_olap.g_by_y")) == 0
     assert len(short_table_only_base_group.get_join_where("olap_test.games_olap.g_by_y")) == 0
     assert len(short_table_only_base_group.get_self_where("olap_test.games_olap.g_by_y")) == 0
+
+    # Test for aggregation over aggregation
+    assert len(short_table_only_base_group.get_aggregations_without_join("olap_test.games_olap.g_by_y_p")) == 2
