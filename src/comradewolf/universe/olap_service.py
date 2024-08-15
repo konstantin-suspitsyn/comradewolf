@@ -75,13 +75,18 @@ class OlapService:
             current_calculation = calculation_field["calculation"]
 
             dimension_fields: list | None = tables_collection.get_dimension_table_with_field(current_field_name)
+            dimension_table: str = ""
+            sk: str = ""
 
             # Check if field in dimension table
             if dimension_fields is not None:
 
+                dimension_table = dimension_fields[0]
+                sk = dimension_fields[1]
+
                 # Can we use service key for count
                 if (current_calculation in [OlapCalculations.COUNT, OlapCalculations.COUNT_DISTINCT]) & \
-                        tables_collection.get_is_sk_for_count(dimension_fields[0], current_field_name):
+                        tables_collection.get_is_sk_for_count(dimension_table, current_field_name):
                     can_use_sk = True
 
             for table in list_of_fact_tables:
@@ -95,13 +100,13 @@ class OlapService:
 
                 if dimension_fields is not None:
                     # Service key not in table
-                    if tables_collection.is_field_in_data_table(dimension_fields[1], dimension_fields[0], None) \
+                    if tables_collection.is_field_in_data_table(sk, table, None) \
                             is False:
                         tables_to_delete_from_short_collection.append(table)
                         continue
 
                 if can_use_sk:
-                    short_tables_collection, add_sk_field = self.add_calculation_no_join(dimension_fields[1],
+                    short_tables_collection, add_sk_field = self.add_calculation_no_join(sk,
                                                                                          current_calculation,
                                                                                          table,
                                                                                          short_tables_collection,
@@ -119,12 +124,12 @@ class OlapService:
                 if add_fact_field:
                     continue
 
-                if can_use_sk:
+                if not can_use_sk:
                     short_tables_collection, add_dimension = self.add_join_calculation(current_field_name,
                                                                                        current_calculation,
                                                                                        table,
-                                                                                       dimension_fields[0],
-                                                                                       dimension_fields[1],
+                                                                                       sk,
+                                                                                       dimension_table,
                                                                                        short_tables_collection)
 
                 if add_dimension:
@@ -317,6 +322,7 @@ class OlapService:
 
             selects_inner_structure: list = short_tables_collection.get_selects(table)
             aggregation_structure: list = short_tables_collection.get_aggregations_without_join(table)
+            select_join: dict = short_tables_collection.get_join_select(table)
 
             def append_select_with_alias(_field: dict):
                 _backend_name: str = "{}.{}".format(short_table_name, _field["backend_field"])
@@ -340,6 +346,22 @@ class OlapService:
 
             for field in aggregation_structure:
                 append_aggregate_with_alias(field)
+
+            for join_table_name in select_join:
+                short_join_table_name: str = join_table_name.split(".")[-1]
+                backend_name: str = "{}.{}".format(short_join_table_name,
+                                                   select_join[join_table_name]["backend_field"])
+                frontend_name: str = select_join[join_table_name]["frontend_field"]
+                service_key: str = select_join[join_table_name]["service_key"]
+
+                service_join: str = "ON {}.{} = {}.{}".format(short_table_name, service_key, short_join_table_name,
+                                                              service_key)
+
+                select_list.append(f"{backend_name} as {frontend_name}")
+
+                if join_table_name not in joins:
+                    joins[join_table_name] = service_join
+
 
             print(short_tables_collection)
 

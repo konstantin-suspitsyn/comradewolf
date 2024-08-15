@@ -19,11 +19,16 @@ data_from_frontend_g: dict = {'SELECT': [{'field_name': 'year'}],
                                               {'field_name': 'pcs', 'calculation': 'sum'},],
                               'WHERE': []}
 
+data_from_frontend_wth_join_calc: dict = {'SELECT': [{'field_name': 'year'}],
+                                          'CALCULATION': [{'field_name': "developer_name", 'calculation': 'count'}],
+                                          'WHERE': [{'field_name': 'year', 'where': '=', 'condition': '2024'}]}
+
 
 def test_short_tables_collection_for_select() -> None:
     olap_structure_generator: OlapStructureGenerator = OlapStructureGenerator(get_olap_games_folder())
     frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(data_from_frontend)
     frontend_to_backend_type_group: OlapFrontendToBackend = OlapFrontendToBackend(data_from_frontend_g)
+    frontend_to_backend_type_join_calc: OlapFrontendToBackend = OlapFrontendToBackend(data_from_frontend_wth_join_calc)
     olap_service: OlapService = OlapService()
 
     # Should be only main field left
@@ -56,3 +61,10 @@ def test_short_tables_collection_for_select() -> None:
 
     # Test for aggregation over aggregation
     assert len(short_table_only_base_group.get_aggregations_without_join("olap_test.games_olap.g_by_y_p")) == 2
+
+    short_table_only_base: ShortTablesCollectionForSelect \
+        = olap_service.generate_pre_select_collection(frontend_to_backend_type_join_calc,
+                                                      olap_structure_generator.get_tables_collection())
+
+    assert len(short_table_only_base.get_aggregation_joins("olap_test.games_olap.base_sales")) == 1
+    assert len(short_table_only_base.keys()) == 1
