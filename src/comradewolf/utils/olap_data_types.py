@@ -227,237 +227,6 @@ class OlapDimensionTable(UserDict):
         return self.data["fields"]
 
 
-class ShortTablesCollectionForSelect(UserDict):
-    """
-    HelperType for short collection of tables that contain all fields that you need
-
-    # TODO: Define final structure
-
-    """
-
-    def __init__(self) -> None:
-        short_tables_collection_for_select: dict = {}
-        super().__init__(short_tables_collection_for_select)
-
-    def create_basic_structure(self, table_name: str, table_properties: dict) -> None:
-        """
-        Creates basic structure for table
-
-            self.data[table_name] = {
-                "select": [
-                            {"backend_field": select_field_alias,
-                            "frontend_field": select_field_alias,
-                            "frontend_calculation": calculation }
-                          ],
-                "aggregation": [], # aggregations that should be made with existing fields
-                "join_select": {"joined_table_name": {
-                    "service_key": "field to join table",
-                    "fields": [fields of joined table]}},
-                "join_where": {},
-                "self_where": {},
-                "all_selects": [],
-            }
-
-        :param table_properties:
-        :param table_name:
-        :return: None
-        """
-        self.data[table_name] = {
-            "select": [],
-            "aggregation": [],
-            "join_select": {},
-            "aggregation_joins": {},
-            "join_where": {},
-            "self_where": {},
-            "all_selects": [],
-
-        }
-
-        for field_alias in table_properties["fields"]:
-            if table_properties["fields"][field_alias]["calculation_type"] is None:
-                self.data[table_name]["all_selects"].append(field_alias)
-
-    def add_select_field(self, table_name: str, select_field_alias: str, calculation: str | None = None) -> None:
-        """
-        Adds select field to table
-        :param calculation:
-        :param table_name:
-        :param select_field_alias:
-        :return:
-        """
-
-        field_name: str = select_field_alias
-
-        if calculation is not None:
-            field_name = create_field_with_calculation(select_field_alias, calculation)
-
-        self.data[table_name]["select"].append({"backend_field": field_name,
-                                                "frontend_field": select_field_alias,
-                                                "frontend_calculation": calculation, })
-
-        self.__remove_select_field(table_name, select_field_alias)
-
-    def __remove_select_field(self, table_name: str, select_field_alias: str) -> None:
-        """
-
-        :param table_name:
-        :param select_field_alias:
-        :return:
-        """
-        if select_field_alias in self.data[table_name]["all_selects"]:
-            self.data[table_name]["all_selects"].remove(select_field_alias)
-
-    def add_aggregation_field(self, table_name: str, field_name_alias: str, calculation: str, frontend_field_name: str,
-                              frontend_aggregation: str) -> None:
-
-        field_name_alias_with_calc = create_field_with_calculation(field_name_alias, calculation)
-
-        self.data[table_name]["aggregation"].append({"backend_field": field_name_alias_with_calc,
-                                                     "frontend_field": frontend_field_name,
-                                                     "backend_calculation": calculation,
-                                                     "frontend_calculation": frontend_aggregation, })
-
-    def remove_table(self, select_table_name) -> None:
-        """
-        Removes table from collection
-        :param select_table_name:
-        :return:
-        """
-        del self.data[select_table_name]
-
-    def add_join_field_for_select(self, table_name: str, field_alias_name: str, join_table_name: str,
-                                  service_key_for_join: str) -> None:
-        """
-        Adds join field to table
-        :param table_name:
-        :param field_alias_name:
-        :param join_table_name:
-        :param service_key_for_join:
-        :return:
-        """
-
-        if join_table_name not in self.data[table_name]["join_select"]:
-            self.data[table_name]["join_select"][join_table_name] = {"service_key": service_key_for_join,
-                                                               "fields": []}
-
-        self.data[table_name]["join_select"][join_table_name]["fields"].append(
-            {"backend_field": field_alias_name,
-             "frontend_field": field_alias_name,
-             "frontend_calculation": None, }
-        )
-
-        self.__remove_select_field(table_name, service_key_for_join)
-
-    def add_where_with_join(self, table_name: str, field_alias_name: str, join_table_name: str, sk_join_field: str,
-                            condition: dict) -> None:
-        """
-        Adds join with where field
-        :param table_name:
-        :param field_alias_name:
-        :param join_table_name:
-        :param sk_join_field:
-        :param condition:
-        :return:
-        """
-        if join_table_name not in self.data[table_name]["join_where"]:
-            self.data[table_name]["join_where"][join_table_name] = {"service_key": sk_join_field, "conditions": []}
-
-        self.data[table_name]["join_where"][join_table_name]["conditions"].append({field_alias_name: condition})
-
-    def add_where(self, table_name: str, field_name: str, condition: dict) -> None:
-        """
-        Adds where field to table
-        If where is in table without join
-        :param table_name:
-        :param field_name:
-        :param condition:
-        :return:
-        """
-        if field_name not in self.data[table_name]["self_where"]:
-            self.data[table_name]["self_where"][field_name] = []
-
-        self.data[table_name]["self_where"][field_name].append(condition)
-
-    def add_join_field_for_aggregation(self, table_name: str, field_name_alias: str, current_calculation: str,
-                                       join_table_name: str, service_key: str) -> None:
-
-        if table_name not in self.data[table_name]["aggregation_joins"]:
-            self.data[table_name]["aggregation_joins"][join_table_name] = {
-                "service_key": service_key,
-                "fields": [],
-            }
-
-            self.data[table_name]["aggregation_joins"][join_table_name]["fields"].append({
-                "frontend_field": field_name_alias,
-                "frontend_calculation": current_calculation,
-            })
-
-    def get_all_selects(self, table_name) -> list:
-        """
-
-        :param table_name:
-        :return:
-        """
-        return self.data[table_name]["all_selects"]
-
-    def generate_complete_structure(self, fact_tables: dict) -> None:
-        """
-        Generates base for all tables for select
-        :param fact_tables: 
-        :return: 
-        """
-        for fact_table_name in fact_tables:
-            self.create_basic_structure(fact_table_name, fact_tables[fact_table_name])
-
-    def get_aggregations_without_join(self, table_name: str):
-        """
-        Get aggregations without join
-        :param table_name: 
-        :return: 
-        """
-        return self.data[table_name]["aggregation"]
-
-    def get_join_select(self, table_name: str):
-        """
-        Get join select field
-        :param table_name:
-        :return:
-        """
-        return self.data[table_name]["join_select"]
-
-    def get_selects(self, table_name: str):
-        """
-
-        :param table_name:
-        :return:
-        """
-        return self.data[table_name]["select"]
-
-    def get_aggregation_joins(self, table_name: str):
-        """
-        Get aggregation join fields
-        :param table_name:
-        :return:
-        """
-        return self.data[table_name]["aggregation_joins"]
-
-    def get_join_where(self, table_name: str):
-        """
-        Get join where fields
-        :param table_name:
-        :return:
-        """
-        return self.data[table_name]["join_where"]
-
-    def get_self_where(self, table_name: str):
-        """
-        Get where fields without join
-        :param table_name:
-        :return:
-        """
-        return self.data[table_name]["self_where"]
-
-
 class OlapTablesCollection(UserDict):
     """
     Contains all data about OLAP tables
@@ -612,9 +381,11 @@ class OlapTablesCollection(UserDict):
 
         return calculation
 
-    def get_data_table_further_calculation(self, table_name: str, field_name_alias: str, calculation: str) -> str | None:
+    def get_data_table_further_calculation(self, table_name: str, field_name_alias: str, calculation: str) \
+            -> str | None:
         """
         Returns can it be used for further calculation
+        :param calculation:
         :param table_name:
         :param field_name_alias:
         :return:
@@ -627,9 +398,22 @@ class OlapTablesCollection(UserDict):
     def get_fact_tables_collection(self) -> dict:
         """
         Returns tables collection of fact tables
-        :return: 
+        :return:
         """
         return self.data["data_tables"]
+
+    def get_backend_field_name(self, table_name, alias_backend_name) -> str:
+        """
+        Gets backend field name from table
+        :param table_name:
+        :param alias_backend_name:
+        :return:
+        """
+
+        if table_name in self.get_fact_tables_collection().keys():
+            return self.data["data_tables"][table_name]["fields"][alias_backend_name]["field_name"]
+
+        return self.data["dimension_tables"][table_name]["fields"][alias_backend_name]["field_name"]
 
 
 class OlapFrontend(UserDict):
@@ -720,3 +504,254 @@ class OlapFrontendToBackend(UserDict):
         :return:
         """
         return self.data["WHERE"]
+
+
+class ShortTablesCollectionForSelect(UserDict):
+    """
+    HelperType for short collection of tables that contain all fields that you need
+
+    # TODO: Define final structure
+
+    """
+
+    def __init__(self) -> None:
+        short_tables_collection_for_select: dict = {}
+        super().__init__(short_tables_collection_for_select)
+
+    def create_basic_structure(self, table_name: str, table_properties: dict) -> None:
+        """
+        Creates basic structure for table
+
+            self.data[table_name] = {
+                "select": [
+                            {"backend_field": backend_name,
+                            "backend_alias": backend_alias_name,
+                            "frontend_field": select_field_alias,
+                            "frontend_calculation": calculation }
+                          ],
+                "aggregation": [], # aggregations that should be made with existing fields
+                "join_select": {"joined_table_name": {
+                    "service_key": "field to join table",
+                    "fields": [fields of joined table]}},
+                "join_where": {},
+                "self_where": {},
+                "all_selects": [],
+            }
+
+        :param table_properties:
+        :param table_name:
+        :return: None
+        """
+        self.data[table_name] = {
+            "select": [],
+            "aggregation": [],
+            "join_select": {},
+            "aggregation_joins": {},
+            "join_where": {},
+            "self_where": {},
+            "all_selects": [],
+
+        }
+
+        for field_alias in table_properties["fields"]:
+            if table_properties["fields"][field_alias]["calculation_type"] is None:
+                self.data[table_name]["all_selects"].append(field_alias)
+
+    def add_select_field(self, table_name: str, select_field_alias: str, tables_collection: OlapTablesCollection,
+                         calculation: str | None = None) -> None:
+        """
+        Adds select field to table
+
+        If it's data table without calculation, then it will add select
+        If data table has calculation on select field, it will use correct alias "{calculation}__{field_alias}"
+
+        :param tables_collection: OlapTablesCollection to get correct backend field
+        :param calculation:
+        :param table_name:
+        :param select_field_alias:
+        :return:
+        """
+
+        alias_backend_name: str = select_field_alias
+
+        if calculation is not None:
+            alias_backend_name = create_field_with_calculation(select_field_alias, calculation)
+
+        backend_name: str = tables_collection.get_backend_field_name(table_name, alias_backend_name)
+
+        self.data[table_name]["select"].append({"backend_field": backend_name,
+                                                "backend_alias": alias_backend_name,
+                                                "frontend_field": select_field_alias,
+                                                "frontend_calculation": calculation, })
+
+        self.__remove_select_field(table_name, select_field_alias)
+
+    def __remove_select_field(self, table_name: str, select_field_alias: str) -> None:
+        """
+
+        :param table_name:
+        :param select_field_alias:
+        :return:
+        """
+        if select_field_alias in self.data[table_name]["all_selects"]:
+            self.data[table_name]["all_selects"].remove(select_field_alias)
+
+    def add_aggregation_field(self, table_name: str, field_name_alias: str, calculation: str, frontend_field_name: str,
+                              frontend_aggregation: str) -> None:
+
+        field_name_alias_with_calc = field_name_alias
+
+        self.data[table_name]["aggregation"].append({"backend_field": field_name_alias_with_calc,
+                                                     "frontend_field": frontend_field_name,
+                                                     "backend_calculation": calculation,
+                                                     "frontend_calculation": frontend_aggregation, })
+
+    def remove_table(self, select_table_name) -> None:
+        """
+        Removes table from collection
+        :param select_table_name:
+        :return:
+        """
+        del self.data[select_table_name]
+
+    def add_join_field_for_select(self, table_name: str, field_alias_name: str, join_table_name: str,
+                                  service_key_for_join: str, table_collection: OlapTablesCollection) -> None:
+        """
+        Adds join field to table
+        :param table_collection:
+        :param table_name:
+        :param field_alias_name:
+        :param join_table_name:
+        :param service_key_for_join:
+        :return:
+        """
+
+        if join_table_name not in self.data[table_name]["join_select"]:
+            self.data[table_name]["join_select"][join_table_name] = {"service_key": service_key_for_join,
+                                                                     "fields": []}
+
+        backend_field = table_collection.get_backend_field_name(join_table_name, field_alias_name)
+
+        self.data[table_name]["join_select"][join_table_name]["fields"].append(
+            {"backend_field": backend_field,
+             "backend_alias": field_alias_name,
+             "frontend_field": field_alias_name,
+             "frontend_calculation": None, }
+        )
+
+        self.__remove_select_field(table_name, service_key_for_join)
+
+    def add_where_with_join(self, table_name: str, field_alias_name: str, join_table_name: str, sk_join_field: str,
+                            condition: dict) -> None:
+        """
+        Adds join with where field
+        :param table_name:
+        :param field_alias_name:
+        :param join_table_name:
+        :param sk_join_field:
+        :param condition:
+        :return:
+        """
+        if join_table_name not in self.data[table_name]["join_where"]:
+            self.data[table_name]["join_where"][join_table_name] = {"service_key": sk_join_field, "conditions": []}
+
+        self.data[table_name]["join_where"][join_table_name]["conditions"].append({field_alias_name: condition})
+
+    def add_where(self, table_name: str, field_name: str, condition: dict) -> None:
+        """
+        Adds where field to table
+        If where is in table without join
+        :param table_name:
+        :param field_name:
+        :param condition:
+        :return:
+        """
+        if field_name not in self.data[table_name]["self_where"]:
+            self.data[table_name]["self_where"][field_name] = []
+
+        self.data[table_name]["self_where"][field_name].append(condition)
+
+    def add_join_field_for_aggregation(self, table_name: str, field_name_alias: str, current_calculation: str,
+                                       join_table_name: str, service_key: str, table_collection: OlapTablesCollection) \
+            -> None:
+
+        if table_name not in self.data[table_name]["aggregation_joins"]:
+            self.data[table_name]["aggregation_joins"][join_table_name] = {
+                "service_key": service_key,
+                "fields": [],
+            }
+
+            backend_field = table_collection.get_backend_field_name(join_table_name, field_name_alias)
+
+            self.data[table_name]["aggregation_joins"][join_table_name]["fields"].append({
+                "frontend_field": field_name_alias,
+                "frontend_calculation": current_calculation,
+                "backend_field": backend_field,
+                "backend_alias": field_name_alias,
+                "backend_calculation": current_calculation,
+            })
+
+    def get_all_selects(self, table_name) -> list:
+        """
+
+        :param table_name:
+        :return:
+        """
+        return self.data[table_name]["all_selects"]
+
+    def generate_complete_structure(self, fact_tables: dict) -> None:
+        """
+        Generates base for all tables for select
+        :param fact_tables: 
+        :return: 
+        """
+        for fact_table_name in fact_tables:
+            self.create_basic_structure(fact_table_name, fact_tables[fact_table_name])
+
+    def get_aggregations_without_join(self, table_name: str):
+        """
+        Get aggregations without join
+        :param table_name: 
+        :return: 
+        """
+        return self.data[table_name]["aggregation"]
+
+    def get_join_select(self, table_name: str):
+        """
+        Get join select field
+        :param table_name:
+        :return:
+        """
+        return self.data[table_name]["join_select"]
+
+    def get_selects(self, table_name: str):
+        """
+
+        :param table_name:
+        :return:
+        """
+        return self.data[table_name]["select"]
+
+    def get_aggregation_joins(self, table_name: str):
+        """
+        Get aggregation join fields
+        :param table_name:
+        :return:
+        """
+        return self.data[table_name]["aggregation_joins"]
+
+    def get_join_where(self, table_name: str):
+        """
+        Get join where fields
+        :param table_name:
+        :return:
+        """
+        return self.data[table_name]["join_where"]
+
+    def get_self_where(self, table_name: str):
+        """
+        Get where fields without join
+        :param table_name:
+        :return:
+        """
+        return self.data[table_name]["self_where"]

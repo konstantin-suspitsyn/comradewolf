@@ -4,7 +4,7 @@ database = "olap_test"
 base_table = "false"
 
 [fields]
-count_distinct_games = {field_type = "service_key", alias = "sk_id_game", calculation_type = "count_distinct", following_calculation = "none", front_name = "none"}
+count_distinct_games = {field_type = "value", alias = "sk_id_game", calculation_type = "count_distinct", following_calculation = "none", front_name = "none"}
 sk_id_publisher = {field_type = "service_key", alias = "sk_id_publisher", calculation_type = "none", following_calculation = "none", front_name = "none"}
 avg_price = {field_type = "value", alias = "price", calculation_type = "avg", following_calculation = "none", front_name = "Price"}
 sum_pcs = {field_type = "value", alias = "pcs", calculation_type = "sum", following_calculation = "sum", front_name = "Pieces"}

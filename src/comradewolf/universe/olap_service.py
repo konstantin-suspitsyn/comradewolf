@@ -27,18 +27,18 @@ class OlapService:
         """
 
         short_tables_collection = ShortTablesCollectionForSelect()
+
         # Filling ShortTablesCollectionForSelect with data
         short_tables_collection.generate_complete_structure(tables_collection.get_fact_tables_collection())
 
         # Exclude tables than don't have necessary fields and rebuild structure
-        short_tables_collection = self.add_select_fields_to_short_tables_collection(short_tables_collection,
-                                                                                    frontend_fields.get_select(),
-                                                                                    tables_collection)
+        short_tables_collection = \
+            self.add_select_fields_to_short_tables_collection(short_tables_collection, frontend_fields.get_select(),
+                                                              tables_collection)
 
-        short_tables_collection = self.add_select_fields_to_short_tables_collection(short_tables_collection,
-                                                                                    frontend_fields.get_where(),
-                                                                                    tables_collection,
-                                                                                    True)
+        short_tables_collection = \
+            self.add_select_fields_to_short_tables_collection(short_tables_collection, frontend_fields.get_where(),
+                                                              tables_collection, True)
 
         short_tables_collection = \
             self.add_calculation_fields_to_short_tables_collection(short_tables_collection,
@@ -106,31 +106,24 @@ class OlapService:
                         continue
 
                 if can_use_sk:
-                    short_tables_collection, add_sk_field = self.add_calculation_no_join(sk,
-                                                                                         current_calculation,
-                                                                                         table,
-                                                                                         short_tables_collection,
-                                                                                         tables_collection)
+                    short_tables_collection, add_sk_field = \
+                        self.add_calculation_no_join(sk, current_calculation, table, short_tables_collection,
+                                                     tables_collection)
 
                 if add_sk_field:
                     continue
 
-                short_tables_collection, add_fact_field = self.add_calculation_no_join(current_field_name,
-                                                                                       current_calculation,
-                                                                                       table,
-                                                                                       short_tables_collection,
-                                                                                       tables_collection)
+                short_tables_collection, add_fact_field = \
+                    self.add_calculation_no_join(current_field_name, current_calculation, table,
+                                                 short_tables_collection, tables_collection)
 
                 if add_fact_field:
                     continue
 
                 if not can_use_sk:
-                    short_tables_collection, add_dimension = self.add_join_calculation(current_field_name,
-                                                                                       current_calculation,
-                                                                                       table,
-                                                                                       sk,
-                                                                                       dimension_table,
-                                                                                       short_tables_collection)
+                    short_tables_collection, add_dimension = \
+                        self.add_join_calculation(current_field_name, current_calculation, table, dimension_table,
+                                                  sk, short_tables_collection, tables_collection)
 
                 if add_dimension:
                     continue
@@ -179,7 +172,8 @@ class OlapService:
         # Field was calculated
         if has_ready_calculation:
             if len(short_tables_collection[table_name]["all_selects"]) == 0:
-                short_tables_collection.add_select_field(table_name, current_field_name, current_calculation)
+                short_tables_collection.add_select_field(table_name, current_field_name, tables_collection,
+                                                         current_calculation)
                 added_dimension = True
                 return short_tables_collection, added_dimension
 
@@ -192,6 +186,7 @@ class OlapService:
                 return short_tables_collection, added_dimension
 
             # You can aggregate aggregated field
+            # TODO CHECK THIS STEP
             short_tables_collection.add_aggregation_field(table_name, current_field_name, current_calculation,
                                                           current_field_name, current_calculation)
 
@@ -224,8 +219,15 @@ class OlapService:
 
             current_field: str = front_field_dict["field_name"]
 
+            join_table_name: str = ""
+            service_key: str = ""
+
             dimension_table_and_service_key: list | None = tables_collection.get_dimension_table_with_field(
                 current_field)
+
+            if dimension_table_and_service_key is not None:
+                join_table_name = dimension_table_and_service_key[0]
+                service_key = dimension_table_and_service_key[1]
 
             for fact_table_name in list_of_fact_tables:
 
@@ -239,7 +241,7 @@ class OlapService:
                 # Field is not in fact table
                 if is_field_in_table:
                     if is_where is False:
-                        table_collection_with_select.add_select_field(fact_table_name, current_field)
+                        table_collection_with_select.add_select_field(fact_table_name, current_field, tables_collection)
                     else:
                         table_collection_with_select.add_where(fact_table_name, current_field,
                                                                front_field_dict)
@@ -253,7 +255,7 @@ class OlapService:
 
                 # Checking if service key in fact table
                 is_service_key_in_table: bool = tables_collection.is_field_in_data_table(
-                    dimension_table_and_service_key[1], fact_table_name, None)
+                    service_key, fact_table_name, None)
 
                 if is_service_key_in_table is False:
                     tables_to_delete_from_short_collection.append(fact_table_name)
@@ -262,12 +264,13 @@ class OlapService:
                 # Field is not in fact table, but you can join dimension table
                 if is_where is False:
                     table_collection_with_select.add_join_field_for_select(fact_table_name, current_field,
-                                                                           dimension_table_and_service_key[0],
-                                                                           dimension_table_and_service_key[1])
+                                                                           join_table_name,
+                                                                           service_key,
+                                                                           tables_collection)
                 else:
                     table_collection_with_select.add_where_with_join(fact_table_name, current_field,
-                                                                     dimension_table_and_service_key[0],
-                                                                     dimension_table_and_service_key[1],
+                                                                     join_table_name,
+                                                                     service_key,
                                                                      front_field_dict)
 
         for delete_table in tables_to_delete_from_short_collection:
@@ -277,11 +280,12 @@ class OlapService:
 
     @staticmethod
     def add_join_calculation(current_field_name: str, current_calculation: str, table_name: str, join_table: str,
-                             service_key: str, short_tables_collection: ShortTablesCollectionForSelect) \
-            -> tuple[ShortTablesCollectionForSelect, bool]:
+                             service_key: str, short_tables_collection: ShortTablesCollectionForSelect,
+                             table_collection: OlapTablesCollection) -> tuple[ShortTablesCollectionForSelect, bool]:
         """
         Adds calculation with join if possible
         Only works with dimension table calculations
+        :param table_collection: OlapTablesCollection needed to get correct field name
         :param current_field_name: frontend field name
         :param current_calculation: frontend calculation
         :param table_name: backend table name
@@ -291,7 +295,7 @@ class OlapService:
         :return: tuple[ShortTablesCollectionForSelect, True if join was added]
         """
         short_tables_collection.add_join_field_for_aggregation(table_name, current_field_name, current_calculation,
-                                                               join_table, service_key)
+                                                               join_table, service_key, table_collection)
 
         return short_tables_collection, True
 
@@ -303,67 +307,124 @@ class OlapService:
         """
 
         for table in short_tables_collection:
-
-            # alias table name
-            short_table_name: str = table.split(".")[-1]
-
             # Fields to put after select. Separate by comma
-            select_list: list[str] = []
-
+            select_list: list[str]
             # Fields to put after group by. Separate by comma
-            select_for_group_by: list[str] = []
-
+            select_for_group_by: list[str]
             # All field should be inner joined
             # Structure {join_table_name: sk}
-            joins: dict = {}
-
+            joins: dict
             # Add where and put AND between fields
-            where: list[str] = []
+            where: list[str]
 
-            selects_inner_structure: list = short_tables_collection.get_selects(table)
-            aggregation_structure: list = short_tables_collection.get_aggregations_without_join(table)
-            select_join: dict = short_tables_collection.get_join_select(table)
-
-            def append_select_with_alias(_field: dict):
-                _backend_name: str = "{}.{}".format(short_table_name, _field["backend_field"])
-                _frontend_name: str = field["frontend_field"]
-                if field["frontend_calculation"] is not None:
-                    _frontend_name = create_field_with_calculation(_frontend_name, _field["frontend_calculation"])
-                select_list.append(FIELD_NAME_WITH_ALIAS.format(_backend_name, _frontend_name))
-
-                if len(aggregation_structure) > 0:
-                    select_for_group_by.append(_backend_name)
-
-            def append_aggregate_with_alias(_field: dict):
-                _backend_name: str = "{}({}.{})".format(_field["backend_calculation"], short_table_name,
-                                                        _field["backend_field"])
-                _frontend_name: str = field["frontend_field"]
-
-                select_list.append(FIELD_NAME_WITH_ALIAS.format(_backend_name, _frontend_name))
-
-            for field in selects_inner_structure:
-                append_select_with_alias(field)
-
-            for field in aggregation_structure:
-                append_aggregate_with_alias(field)
-
-            for join_table_name in select_join:
-                short_join_table_name: str = join_table_name.split(".")[-1]
-                backend_name: str = "{}.{}".format(short_join_table_name,
-                                                   select_join[join_table_name]["backend_field"])
-                frontend_name: str = select_join[join_table_name]["frontend_field"]
-                service_key: str = select_join[join_table_name]["service_key"]
-
-                service_join: str = "ON {}.{} = {}.{}".format(short_table_name, service_key, short_join_table_name,
-                                                              service_key)
-
-                select_list.append(f"{backend_name} as {frontend_name}")
-
-                if join_table_name not in joins:
-                    joins[join_table_name] = service_join
-
+            select_list, select_for_group_by, joins, where = \
+                self.generate_structure_for_each_piece_of_join(short_tables_collection, table)
 
             print(short_tables_collection)
 
         return ""
 
+    def generate_structure_for_each_piece_of_join(self, short_tables_collection, table):
+        # TODO: REFACTOR IT
+
+        # alias table name
+        short_table_name: str = table.split(".")[-1]
+        # Fields to put after select. Separate by comma
+        select_list: list[str] = []
+        # Fields to put after group by. Separate by comma
+        select_for_group_by: list[str] = []
+        # All field should be inner joined
+        # Structure {join_table_name: sk}
+        joins: dict = {}
+        # Add where and put AND between fields
+        where: list[str] = []
+        selects_inner_structure: list = short_tables_collection.get_selects(table)
+        aggregation_structure: list = short_tables_collection.get_aggregations_without_join(table)
+        select_join: dict = short_tables_collection.get_join_select(table)
+        aggregation_join: dict = short_tables_collection.get_aggregation_joins(table)
+        join_where: dict = short_tables_collection.get_join_where(table)
+        where_list: dict = short_tables_collection.get_self_where(table)
+
+        # Simple selects
+
+        for field in selects_inner_structure:
+            backend_name: str = "{}.{}".format(short_table_name, field["backend_field"])
+            frontend_name: str = field["frontend_field"]
+            if field["frontend_calculation"] is not None:
+                frontend_name = create_field_with_calculation(frontend_name, field["frontend_calculation"])
+            select_list.append(FIELD_NAME_WITH_ALIAS.format(backend_name, frontend_name))
+
+            if len(aggregation_structure) > 0:
+                select_for_group_by.append(backend_name)
+
+        # Calculations
+
+        for field in aggregation_structure:
+            backend_name: str = "{}({}.{})".format(field["backend_calculation"], short_table_name,
+                                                   field["backend_field"])
+            frontend_name: str = field["frontend_field"]
+
+            select_list.append(FIELD_NAME_WITH_ALIAS.format(backend_name, frontend_name))
+
+        # Join selects
+
+        for join_table_name in select_join:
+            short_join_table_name: str = join_table_name.split(".")[-1]
+
+            service_key: str = select_join[join_table_name]["service_key"]
+
+            service_join: str = "ON {}.{} = {}.{}".format(short_table_name, service_key, short_join_table_name,
+                                                          service_key)
+
+            for join_field in select_join[join_table_name]["fields"]:
+                backend_name: str = "{}.{}".format(short_join_table_name, join_field["backend_field"])
+                frontend_name: str = join_field["frontend_field"]
+
+                select_list.append(f"{backend_name} as {frontend_name}")
+                select_for_group_by.append(backend_name)
+
+            if join_table_name not in joins:
+                joins[join_table_name] = service_join
+        for join_table_name in aggregation_join:
+            short_join_table_name: str = join_table_name.split(".")[-1]
+            service_key: str = aggregation_join[join_table_name]["service_key"]
+
+            service_join: str = "ON {}.{} = {}.{}".format(short_table_name, service_key, short_join_table_name,
+                                                          service_key)
+
+            for field in aggregation_join[join_table_name]["fields"]:
+                backend_name: str = "{}({}.{})" \
+                    .format(field["backend_calculation"],
+                            short_join_table_name,
+                            field["backend_field"], )
+                frontend_name: str = create_field_with_calculation(field["frontend_field"],
+                                                                   field["frontend_calculation"])
+                frontend_name = "{}.{}".format(short_join_table_name, frontend_name)
+
+                select_for_group_by.append(f"{backend_name} as {frontend_name}")
+
+            if join_table_name not in joins:
+                joins[join_table_name] = service_join
+
+        for where_item in where_list:
+            backend_name: str = "{}.{}".format(short_table_name, where_item)
+            for where_field in where_list[where_item]:
+                where.append("{} {} {}".format(backend_name, where_field["where"], where_field["condition"]))
+
+        for join_table_name in join_where:
+            short_join_table_name: str = join_table_name.split(".")[-1]
+            service_key: str = join_where[join_table_name]["service_key"]
+            service_join: str = "ON {}.{} = {}.{}".format(short_table_name, service_key, short_join_table_name,
+                                                          service_key)
+
+            if join_table_name not in joins:
+                joins[join_table_name] = service_join
+
+            for condition in join_where[join_table_name]["conditions"]:
+                for field_name in condition:
+                    backend_name: str = "{}.{}".format(short_join_table_name, condition[field_name]["field_name"])
+                    where.append("{} {} {}".format(backend_name,
+                                                   condition[field_name]["where"],
+                                                   condition[field_name]["condition"]))
+
+        return select_list, select_for_group_by, joins, where
