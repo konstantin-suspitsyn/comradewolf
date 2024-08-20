@@ -9,6 +9,7 @@ SELECT = "SELECT"
 WHERE = "WHERE"
 GROUP_BY = "GROUP BY"
 INNER_JOIN = "INNER_JOIN"
+FROM = "FROM"
 
 
 class OlapService:
@@ -338,6 +339,9 @@ class OlapService:
         joins: dict = {}
         # Add where and put AND between fields
         where: list[str] = []
+        # Has calculation
+        has_calculation: bool = False
+
         selects_inner_structure: list = short_tables_collection.get_selects(table)
         aggregation_structure: list = short_tables_collection.get_aggregations_without_join(table)
         select_join: dict = short_tables_collection.get_join_select(table)
@@ -364,6 +368,8 @@ class OlapService:
                                                    field["backend_field"])
             frontend_name: str = field["frontend_field"]
 
+            has_calculation = True
+
             select_list.append(FIELD_NAME_WITH_ALIAS.format(backend_name, frontend_name))
 
         # Join selects
@@ -385,6 +391,9 @@ class OlapService:
 
             if join_table_name not in joins:
                 joins[join_table_name] = service_join
+
+        # Aggregation join
+
         for join_table_name in aggregation_join:
             short_join_table_name: str = join_table_name.split(".")[-1]
             service_key: str = aggregation_join[join_table_name]["service_key"]
@@ -401,15 +410,21 @@ class OlapService:
                                                                    field["frontend_calculation"])
                 frontend_name = "{}.{}".format(short_join_table_name, frontend_name)
 
+                has_calculation = True
+
                 select_for_group_by.append(f"{backend_name} as {frontend_name}")
 
             if join_table_name not in joins:
                 joins[join_table_name] = service_join
 
+        # Where without join
+
         for where_item in where_list:
             backend_name: str = "{}.{}".format(short_table_name, where_item)
             for where_field in where_list[where_item]:
                 where.append("{} {} {}".format(backend_name, where_field["where"], where_field["condition"]))
+
+        # Where with join
 
         for join_table_name in join_where:
             short_join_table_name: str = join_table_name.split(".")[-1]
@@ -427,4 +442,50 @@ class OlapService:
                                                    condition[field_name]["where"],
                                                    condition[field_name]["condition"]))
 
-        return select_list, select_for_group_by, joins, where
+        return select_list, select_for_group_by, joins, where, has_calculation
+
+    def generate_select(self, select_list: list, select_for_group_by: list, joins: dict, where: list,
+                        has_calculation: str, table_name: str, not_selected_fields_no: int) -> str:
+        """
+        Generates select statement ready for database query
+        All parameters come from self.generate_structure_for_each_piece_of_join()
+        :param has_calculation: If true, our select needs GROUP BY with select_for_group_by
+        :param not_selected_fields_no:
+        :param table_name: table name for FROM
+        :param select_list: list of select pieces
+        :param select_for_group_by: if there is any calculation we need to use this list in group by
+        :param joins: tables to be joined
+        :param where: list of where conditions
+        :return: select statement
+        """
+        sql: str = SELECT
+        select_string: str = ""
+        join_string: str = ""
+        where_string: str = ""
+        group_by_string: str = ""
+
+        select_string += "\n\t " + "\n\t,".join(select_list)
+        if len(where) > 0:
+            where_string += " " + " AND ".join(where)
+
+        if len(joins) > 0:
+            for table in joins:
+                join_string += f"\nINNER JOIN {table} \n\tON {joins[table]}"
+
+        if (len(group_by_string) > 0) or has_calculation or (not_selected_fields_no > 0):
+            group_by_string += "\n\t," + "\n\t,".join(select_for_group_by)
+
+        sql += select_string
+
+        sql += f"\n{FROM} {table_name}"
+
+        if len(join_string) > 0:
+            sql += f"\n{join_string}"
+
+        if len(where) > 0:
+            sql += f"\n{where}"
+
+        if len(group_by_string) > 0:
+            sql += f"\n{GROUP_BY}{group_by_string}"
+
+        return sql

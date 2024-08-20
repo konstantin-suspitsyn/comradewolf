@@ -6,7 +6,7 @@ from tests.test_olap_service_ShortTablesCollectionForSelect import base_table_wi
 
 def test_short_tables_collection_for_select() -> None:
 
-    select_list, select_for_group_by, joins, where = \
+    select_list, select_for_group_by, joins, where, has_calculation = \
         generate_structure_for_each_piece_of_join_test_games(base_table_with_join, "olap_test.games_olap.base_sales")
 
     should_be_in_select: list = ['base_sales.year as "year"', 'base_sales.pcs as "pcs"',
@@ -35,7 +35,7 @@ def test_short_tables_collection_for_select() -> None:
 
 
 def test_aggregate_over_aggregate() -> None:
-    select_list, select_for_group_by, joins, where = \
+    select_list, select_for_group_by, joins, where, has_calculation = \
         generate_structure_for_each_piece_of_join_test_games(sum_over_aggregate, "olap_test.games_olap.g_by_y")
 
     select_list_test = ['g_by_y.year as "year"', 'g_by_y.sum_sales_rub as "sales_rub__sum"',
@@ -47,7 +47,7 @@ def test_aggregate_over_aggregate() -> None:
     assert len(select_for_group_by) == 0
     assert len(joins) == 0
 
-    select_list, select_for_group_by, joins, where = \
+    select_list, select_for_group_by, joins, where, has_calculation = \
         generate_structure_for_each_piece_of_join_test_games(sum_over_aggregate, "olap_test.games_olap.g_by_y_ym")
 
     assert len(select_for_group_by) == 1
