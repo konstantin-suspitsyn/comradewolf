@@ -97,6 +97,7 @@ class OlapFieldTypes(enum.Enum):
     VALUE = "value"
     DIMENSION = "dimension"
     SERVICE_KEY = "service_key"
+    DATE_TIME = "date_time"
 
 
 class OlapCalculations(enum.Enum):
