@@ -192,9 +192,3 @@ class OlapStructureGenerator:
         :return:
         """
         return self.tables_collection
-
-
-if __name__ == "__main__":
-    osg = OlapStructureGenerator(path_to_olap_structure=r"C:\Users\Const\working\comradewolf\tests"
-                                                        r"\test_olap_structure\olap_games")
-    print(osg.get_front_fields())

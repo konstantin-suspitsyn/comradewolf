@@ -300,12 +300,14 @@ class OlapService:
 
         return short_tables_collection, True
 
-    def generate_selects_from_collection(self, short_tables_collection: ShortTablesCollectionForSelect) -> str:
+    def generate_selects_from_collection(self, short_tables_collection: ShortTablesCollectionForSelect) -> dict:
         """
         Generates select structure from short tables collection
         :param short_tables_collection: should be created from self.generate_pre_select_collection()
         :return:
         """
+
+        temp_structure: dict = {}
 
         for table in short_tables_collection:
             # Fields to put after select. Separate by comma
@@ -318,12 +320,18 @@ class OlapService:
             # Add where and put AND between fields
             where: list[str]
 
-            select_list, select_for_group_by, joins, where = \
-                self.generate_structure_for_each_piece_of_join(short_tables_collection, table)
+            select_list, select_for_group_by, joins, where, has_calculation = self\
+                .generate_structure_for_each_piece_of_join(short_tables_collection, table)
 
-            print(short_tables_collection)
+            not_selected_fields_no = len(short_tables_collection.get_all_selects(table))
 
-        return ""
+            sql = self.generate_select_query(select_list, select_for_group_by, joins, where, has_calculation, table, not_selected_fields_no)
+
+            temp_structure[table] = {}
+            temp_structure[table]["sql"] = sql
+            temp_structure[table]["not_selected_fields_no"] = not_selected_fields_no
+
+        return temp_structure
 
     def generate_structure_for_each_piece_of_join(self, short_tables_collection, table):
         # TODO: REFACTOR IT
@@ -358,7 +366,7 @@ class OlapService:
                 frontend_name = create_field_with_calculation(frontend_name, field["frontend_calculation"])
             select_list.append(FIELD_NAME_WITH_ALIAS.format(backend_name, frontend_name))
 
-            if len(aggregation_structure) > 0:
+            if (len(aggregation_structure) > 0) or (len(aggregation_join)>0):
                 select_for_group_by.append(backend_name)
 
         # Calculations
@@ -408,11 +416,11 @@ class OlapService:
                             field["backend_field"], )
                 frontend_name: str = create_field_with_calculation(field["frontend_field"],
                                                                    field["frontend_calculation"])
-                frontend_name = "{}.{}".format(short_join_table_name, frontend_name)
+                # frontend_name = "{}.{}".format(short_join_table_name, frontend_name)
 
                 has_calculation = True
 
-                select_for_group_by.append(f"{backend_name} as {frontend_name}")
+                select_list.append(f"{backend_name} as {frontend_name}")
 
             if join_table_name not in joins:
                 joins[join_table_name] = service_join
@@ -444,8 +452,8 @@ class OlapService:
 
         return select_list, select_for_group_by, joins, where, has_calculation
 
-    def generate_select(self, select_list: list, select_for_group_by: list, joins: dict, where: list,
-                        has_calculation: str, table_name: str, not_selected_fields_no: int) -> str:
+    def generate_select_query(self, select_list: list, select_for_group_by: list, joins: dict, where: list,
+                              has_calculation: bool, table_name: str, not_selected_fields_no: int) -> str:
         """
         Generates select statement ready for database query
         All parameters come from self.generate_structure_for_each_piece_of_join()
@@ -466,14 +474,14 @@ class OlapService:
 
         select_string += "\n\t " + "\n\t,".join(select_list)
         if len(where) > 0:
-            where_string += " " + " AND ".join(where)
+            where_string += WHERE + " " + " AND ".join(where)
 
         if len(joins) > 0:
             for table in joins:
-                join_string += f"\nINNER JOIN {table} \n\tON {joins[table]}"
+                join_string += f"\nINNER JOIN {table} \n\t{joins[table]}"
 
-        if (len(group_by_string) > 0) or has_calculation or (not_selected_fields_no > 0):
-            group_by_string += "\n\t," + "\n\t,".join(select_for_group_by)
+        if len(select_for_group_by) > 0:
+            group_by_string += "\n\t" + "\n\t,".join(select_for_group_by)
 
         sql += select_string
 
@@ -483,7 +491,7 @@ class OlapService:
             sql += f"\n{join_string}"
 
         if len(where) > 0:
-            sql += f"\n{where}"
+            sql += f"\n{where_string}"
 
         if len(group_by_string) > 0:
             sql += f"\n{GROUP_BY}{group_by_string}"
