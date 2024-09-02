@@ -4,4 +4,4 @@ database = "olap_test"
 
 [fields]
 sk_id_platform = {field_type = "service_key", alias = "sk_id_platform", front_name="none"}
-platform_name = {field_type = "dimension", alias = "none", front_name="Platform Name", use_sk_for_count="True"}
+platform_name = {field_type = "dimension", alias = "platform_name", front_name="Platform Name", use_sk_for_count="True"}

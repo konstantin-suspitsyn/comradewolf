@@ -64,7 +64,7 @@ class OlapService:
 
         short_tables_collection: ShortTablesCollectionForSelect = short_tables_collection.copy()
 
-        list_of_fact_tables = list(short_tables_collection.keys())
+        list_of_fact_tables: list = list(short_tables_collection.keys())
 
         # If service key not in table, remove table from table_collection
         tables_to_delete_from_short_collection: list[str] = []
@@ -121,7 +121,7 @@ class OlapService:
                 if add_fact_field:
                     continue
 
-                if not can_use_sk:
+                if (not can_use_sk) & (dimension_fields is not None):
                     short_tables_collection, add_dimension = \
                         self.add_join_calculation(current_field_name, current_calculation, table, dimension_table,
                                                   sk, short_tables_collection, tables_collection)
