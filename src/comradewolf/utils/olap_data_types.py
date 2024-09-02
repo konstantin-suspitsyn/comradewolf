@@ -226,6 +226,17 @@ class OlapDimensionTable(UserDict):
         """
         return self.data["fields"]
 
+    def get_service_key(self) -> str:
+        """
+        Returns the service key for this table
+        :return:
+        """
+        for field in self.data["fields"]:
+            if self.data["fields"][field]["field_type"] == OlapFieldTypes.SERVICE_KEY.value:
+                return field
+
+        raise OlapCreationException("Service key is not defined")
+
 
 class OlapTablesCollection(UserDict):
     """
@@ -298,22 +309,24 @@ class OlapTablesCollection(UserDict):
 
             dimension_table: OlapDimensionTable = self.data["dimension_tables"][table_name]
 
-            has_service_key: bool = False
             has_field: bool = False
-            service_key_name: str = ""
+            service_key_name: str = dimension_table.get_service_key()
 
             for field in dimension_table.get_fields():
+
+                has_field = False
+
                 if field == field_alias_name:
                     has_field = True
 
-                if dimension_table["fields"][field]["field_type"] == OlapFieldTypes.SERVICE_KEY.value:
-                    service_key_name = field
-                    has_service_key = True
+                # if dimension_table["fields"][field]["field_type"] == OlapFieldTypes.SERVICE_KEY.value:
+                #     service_key_name = field
+                #     has_service_key = True
 
-            if has_service_key & has_field:
-                dimension_table: list = [table_name, service_key_name]
+                if has_field:
+                    dimension_table_for_return: list = [table_name, service_key_name]
 
-                return dimension_table
+                    return dimension_table_for_return
 
         return None
 
