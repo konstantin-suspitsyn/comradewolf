@@ -415,7 +415,7 @@ class OlapTablesCollection(UserDict):
         """
         return self.data["data_tables"]
 
-    def get_backend_field_name(self, table_name, alias_backend_name) -> str:
+    def get_backend_field_name(self, table_name, alias_backend_name) -> str | None:
         """
         Gets backend field name from table
         :param table_name:
@@ -424,9 +424,14 @@ class OlapTablesCollection(UserDict):
         """
 
         if table_name in self.get_fact_tables_collection().keys():
-            return self.data["data_tables"][table_name]["fields"][alias_backend_name]["field_name"]
+            if alias_backend_name in self.data["data_tables"][table_name]["fields"]:
+                return self.data["data_tables"][table_name]["fields"][alias_backend_name]["field_name"]
 
-        return self.data["dimension_tables"][table_name]["fields"][alias_backend_name]["field_name"]
+        if table_name in self.get_dimension_table_names():
+            if alias_backend_name in self.data["dimension_tables"][table_name]["fields"]:
+                return self.data["dimension_tables"][table_name]["fields"][alias_backend_name]["field_name"]
+
+        return None
 
 
 class OlapFrontend(UserDict):
@@ -610,9 +615,13 @@ class ShortTablesCollectionForSelect(UserDict):
             self.data[table_name]["all_selects"].remove(select_field_alias)
 
     def add_aggregation_field(self, table_name: str, field_name_alias: str, calculation: str, frontend_field_name: str,
-                              frontend_aggregation: str) -> None:
+                              frontend_aggregation: str, tables_collection: OlapTablesCollection) -> None:
 
-        field_name_alias_with_calc = field_name_alias
+        field_name_alias_with_calc = tables_collection.get_backend_field_name(table_name, field_name_alias)
+
+        if field_name_alias_with_calc is None:
+            field_name_alias_with_calc = tables_collection\
+                .get_backend_field_name(table_name, create_field_with_calculation(field_name_alias, calculation))
 
         self.data[table_name]["aggregation"].append({"backend_field": field_name_alias_with_calc,
                                                      "frontend_field": frontend_field_name,

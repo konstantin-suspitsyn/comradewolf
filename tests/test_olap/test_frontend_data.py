@@ -14,7 +14,13 @@ base_table_with_join_no_where: dict = {'SELECT': [{'field_name': 'year'},
 
 # This should only use base_sales table
 group_by_read_no_where: dict = {'SELECT': [{'field_name': 'year'},
-                                           {'field_name': 'yearmonth'},],
+                                           {'field_name': 'yearmonth'}, ],
                                 'CALCULATION': [{'field_name': 'price', 'calculation': 'avg'},
                                                 {'field_name': 'pcs', 'calculation': 'sum'}, ],
                                 'WHERE': []}
+
+# This should only use base_sales table
+group_by_also_in_agg: dict = {'SELECT': [{'field_name': 'year'},],
+                              'CALCULATION': [{'field_name': 'sales_rub', 'calculation': 'sum'},
+                                              {'field_name': 'pcs', 'calculation': 'sum'}, ],
+                              'WHERE': []}

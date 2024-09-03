@@ -51,8 +51,8 @@ def test_aggregate_over_aggregate() -> None:
         generate_structure_for_each_piece_of_join_test_games(sum_over_aggregate, "olap_test.games_olap.g_by_y_ym")
 
     assert len(select_for_group_by) == 1
-    select_list_test = ['g_by_y_ym.year as "year"', 'sum(g_by_y_ym.sales_rub) as "sales_rub"',
-                        'sum(g_by_y_ym.pcs) as "pcs"']
+    select_list_test = ['g_by_y_ym.year as "year"', 'sum(g_by_y_ym.sum_sales_rub) as "sales_rub"',
+                        'sum(g_by_y_ym.sum_pcs) as "pcs"']
 
     for select_item in select_list_test:
         assert select_item in select_list
