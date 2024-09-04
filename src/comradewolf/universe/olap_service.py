@@ -164,7 +164,7 @@ class OlapService:
         # Field was not yet calculated
         if has_ready_calculation is False:
             short_tables_collection.add_aggregation_field(table_name, current_field_name, current_calculation,
-                                                          current_field_name, current_calculation)
+                                                          current_field_name, current_calculation, tables_collection)
 
             added_dimension = True
 
@@ -187,9 +187,8 @@ class OlapService:
                 return short_tables_collection, added_dimension
 
             # You can aggregate aggregated field
-            # TODO CHECK THIS STEP
             short_tables_collection.add_aggregation_field(table_name, current_field_name, current_calculation,
-                                                          current_field_name, current_calculation)
+                                                          current_field_name, current_calculation, tables_collection)
 
             added_dimension = True
 
