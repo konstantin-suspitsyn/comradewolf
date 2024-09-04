@@ -3,15 +3,13 @@ from comradewolf.universe.olap_structure_generator import OlapStructureGenerator
 from comradewolf.utils.olap_data_types import OlapFrontendToBackend, ShortTablesCollectionForSelect
 from tests.constants_for_testing import get_olap_games_folder
 from tests.test_olap.test_frontend_data import base_table_with_join_no_where_no_calc, base_table_with_join_no_where, \
-    group_by_read_no_where, group_by_also_in_agg
+    group_by_read_no_where, group_by_also_in_agg, one_agg_value, one_dimension
 
 BASE_TABLE_NAME = "olap_test.games_olap.base_sales"
 G_BY_Y_YM_TABLE_NAME = "olap_test.games_olap.g_by_y_ym"
 G_BY_Y_TABLE_NAME = "olap_test.games_olap.g_by_y"
 G_BY_Y_YM_P_TABLE_NAME = "olap_test.games_olap.g_by_y_ym_p"
 G_BY_Y_P_TABLE_NAME = "olap_test.games_olap.g_by_y_p"
-
-
 
 olap_structure_generator: OlapStructureGenerator = OlapStructureGenerator(get_olap_games_folder())
 olap_service: OlapService = OlapService()
@@ -254,14 +252,38 @@ def test_base_agg_wth_agg():
     assert len(short_table_only_base.get_self_where(G_BY_Y_P_TABLE_NAME)) == 0
     assert len(short_table_only_base.get_all_selects(G_BY_Y_P_TABLE_NAME)) == 1
 
+
 def test_one_value_in_aggregate():
     # Только одно поле value в агрегат
-    pass
+    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(one_agg_value)
+
+    # Should be only main field left
+    short_table_only_base: ShortTablesCollectionForSelect \
+        = olap_service.generate_pre_select_collection(frontend_to_backend_type,
+                                                      olap_structure_generator.get_tables_collection())
+
+    # All  tables are in
+    assert len(short_table_only_base) == 5
+
+    for table in short_table_only_base:
+        assert len(short_table_only_base.get_aggregations_without_join(table)) == 1
+        assert len(short_table_only_base.get_join_select(table)) == 0
+        assert len(short_table_only_base.get_self_where(table)) == 0
+        assert len(short_table_only_base.get_aggregation_joins(table)) == 0
+        assert len(short_table_only_base.get_join_where(table)) == 0
+        assert len(short_table_only_base.get_selects(table)) == 0
 
 
 def test_one_dimension_in_aggregate():
     # Только одно поле dimension в агрегат
-    pass
+    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(one_dimension)
+
+    # Should be only main field left
+    short_table_only_base: ShortTablesCollectionForSelect \
+        = olap_service.generate_pre_select_collection(frontend_to_backend_type,
+                                                      olap_structure_generator.get_tables_collection())
+
+    assert 1 == 1
 
 
 def test_one_dimension_no_aggregate():
@@ -303,4 +325,6 @@ if __name__ == "__main__":
     # test_should_be_only_base_table_no_group_by()
     # test_should_be_only_base_table_with_group_by()
     # test_base_table_wth_gb_agg_no_gb()
-    test_base_agg_wth_agg()
+    # test_base_agg_wth_agg()
+    # test_one_value_in_aggregate()
+    test_one_dimension_in_aggregate()
