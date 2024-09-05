@@ -1,5 +1,8 @@
-from comradewolf.universe.olap_service import OlapService
+import pytest
+
+from comradewolf.universe.olap_service import OlapService, NO_FACT_TABLES
 from comradewolf.universe.olap_structure_generator import OlapStructureGenerator
+from comradewolf.utils.exceptions import OlapException
 from comradewolf.utils.olap_data_types import OlapFrontendToBackend, ShortTablesCollectionForSelect
 from tests.constants_for_testing import get_olap_games_folder
 from tests.test_olap.test_frontend_data import base_table_with_join_no_where_no_calc, base_table_with_join_no_where, \
@@ -279,11 +282,11 @@ def test_one_dimension_in_aggregate():
     frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(one_dimension)
 
     # Should be only main field left
-    short_table_only_base: ShortTablesCollectionForSelect \
-        = olap_service.generate_pre_select_collection(frontend_to_backend_type,
-                                                      olap_structure_generator.get_tables_collection())
+    with pytest.raises(OlapException) as raised:
+        olap_service.generate_pre_select_collection(frontend_to_backend_type,
+                                                    olap_structure_generator.get_tables_collection())
 
-    assert 1 == 1
+    assert NO_FACT_TABLES in raised.__str__()
 
 
 def test_one_dimension_no_aggregate():

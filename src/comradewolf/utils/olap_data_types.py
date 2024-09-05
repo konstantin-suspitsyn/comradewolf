@@ -302,7 +302,7 @@ class OlapTablesCollection(UserDict):
         If you have multiple dimension tables with same alias-field, you have done something wrong
 
         :param field_alias_name:
-        :return: dictionary with structure {table_name: service_key_name}
+        :return: dictionary with structure [table_name, service_key_name]
         """
 
         for table_name in self.get_dimension_table_names():
@@ -432,6 +432,32 @@ class OlapTablesCollection(UserDict):
                 return self.data["dimension_tables"][table_name]["fields"][alias_backend_name]["field_name"]
 
         return None
+
+    def get_frontend_fields(self, table_name: str) -> list:
+
+        frontend_fields: list = []
+
+        if table_name in self.get_fact_tables_collection().keys():
+            for field in self.get_fact_tables_collection()[table_name]["fields"]:
+                frontend_fields.append(self.data["data_tables"][table_name]["fields"][field]["field_name"])
+
+            return frontend_fields
+
+        if table_name in self.get_dimension_table_names():
+            for field in self.data["dimension_tables"][table_name]["fields"]:
+                frontend_fields.append(self.data["dimension_tables"][table_name]["fields"][field]["field_name"])
+
+            return frontend_fields
+
+        raise OlapException(f"Table {table_name} not found")
+
+    def get_fact_table_fields(self, table_name: str) -> dict:
+        """
+        Returns fields from fact table
+        :param table_name:
+        :return:
+        """
+        return self.data["data_tables"][table_name]["fields"]
 
 
 class OlapFrontend(UserDict):
@@ -620,7 +646,7 @@ class ShortTablesCollectionForSelect(UserDict):
         field_name_alias_with_calc = tables_collection.get_backend_field_name(table_name, field_name_alias)
 
         if field_name_alias_with_calc is None:
-            field_name_alias_with_calc = tables_collection\
+            field_name_alias_with_calc = tables_collection \
                 .get_backend_field_name(table_name, create_field_with_calculation(field_name_alias, calculation))
 
         self.data[table_name]["aggregation"].append({"backend_field": field_name_alias_with_calc,
