@@ -1,7 +1,12 @@
 from comradewolf.utils.enums_and_field_dicts import OlapCalculations
+from comradewolf.utils.exceptions import OlapException
 from comradewolf.utils.olap_data_types import OlapFrontendToBackend, OlapTablesCollection, \
     ShortTablesCollectionForSelect
 from comradewolf.utils.utils import create_field_with_calculation
+
+NO_FACT_TABLES = "No fact tables"
+
+MANY_DIMENSION_TABLES_ERR = "Two or more dimension tables are without fact table are in query. There is no way to join them"
 
 FIELD_NAME_WITH_ALIAS = '{} as "{}"'
 
@@ -27,7 +32,12 @@ class OlapService:
         :return: ShortTablesCollectionForSelect
         """
 
-        short_tables_collection = ShortTablesCollectionForSelect()
+        has_fact_tables: bool = self.has_fact_table_fields(frontend_fields, tables_collection)
+
+        if has_fact_tables is False:
+            raise OlapException(NO_FACT_TABLES)
+
+        short_tables_collection: ShortTablesCollectionForSelect = ShortTablesCollectionForSelect()
 
         # Filling ShortTablesCollectionForSelect with data
         short_tables_collection.generate_complete_structure(tables_collection.get_fact_tables_collection())
@@ -319,12 +329,13 @@ class OlapService:
             # Add where and put AND between fields
             where: list[str]
 
-            select_list, select_for_group_by, joins, where, has_calculation = self\
+            select_list, select_for_group_by, joins, where, has_calculation = self \
                 .generate_structure_for_each_piece_of_join(short_tables_collection, table)
 
             not_selected_fields_no = len(short_tables_collection.get_all_selects(table))
 
-            sql = self.generate_select_query(select_list, select_for_group_by, joins, where, has_calculation, table, not_selected_fields_no)
+            sql = self.generate_select_query(select_list, select_for_group_by, joins, where, has_calculation, table,
+                                             not_selected_fields_no)
 
             temp_structure[table] = {}
             temp_structure[table]["sql"] = sql
@@ -365,7 +376,7 @@ class OlapService:
                 frontend_name = create_field_with_calculation(frontend_name, field["frontend_calculation"])
             select_list.append(FIELD_NAME_WITH_ALIAS.format(backend_name, frontend_name))
 
-            if (len(aggregation_structure) > 0) or (len(aggregation_join)>0):
+            if (len(aggregation_structure) > 0) or (len(aggregation_join) > 0):
                 select_for_group_by.append(backend_name)
 
         # Calculations
@@ -496,3 +507,101 @@ class OlapService:
             sql += f"\n{GROUP_BY}{group_by_string}"
 
         return sql
+
+    @staticmethod
+    def has_fact_table_fields(frontend_fields: OlapFrontendToBackend, tables_collection: OlapTablesCollection) -> bool:
+        """
+        Counts how many fact fields are in base_table
+        :param frontend_fields:
+        :param tables_collection:
+        :return:
+        """
+
+        has_fact_field: bool = False
+        base_table: str | None = None
+
+        for table in tables_collection.get_fact_tables_collection():
+
+            table_fields: dict = tables_collection.get_fact_table_fields(table)
+
+            for field in table_fields:
+                if table_fields[field]["calculation_type"] is not None:
+                    continue
+
+            base_table = table
+
+        if base_table is None:
+            raise OlapException("No base table")
+
+        frontend_fields_base_table: list = tables_collection.get_frontend_fields(base_table)
+
+        for field in frontend_fields.get_select():
+            if field["field_name"] in frontend_fields_base_table:
+                return True
+
+        for field in frontend_fields.get_calculation():
+            if field["field_name"] in frontend_fields_base_table:
+                return True
+
+        for field in frontend_fields.get_where():
+            if field["field_name"] in frontend_fields_base_table:
+                return True
+
+        return has_fact_field
+
+    def generate_pre_select_for_dimension_only(self, frontend_fields: OlapFrontendToBackend,
+                                               tables_collection: OlapTablesCollection) \
+            -> tuple[str | None, list[str], list[str], list[str], bool]:
+        short_tables_collection: ShortTablesCollectionForSelect = ShortTablesCollectionForSelect()
+
+        def get_table_name_by_field(current_table_name_: str, table_name_: str) -> tuple[str, str]:
+            if table_name_ is None:
+                table_name_ = current_table_name_
+            else:
+                if table_name_ != current_table_name_:
+                    raise OlapException(MANY_DIMENSION_TABLES_ERR)
+
+            short_table_name_ = table_name_.split(".")[-1]
+
+            return table_name_, short_table_name_
+
+        table_name: str | None = None
+        short_table_name: str
+
+        select_list: list[str] = []
+        # Fields to put after group by. Separate by comma
+        select_for_group_by: list[str] = []
+        # All field should be inner joined
+        # Structure {join_table_name: sk}
+        where: list[str] = []
+        # Has calculation
+        has_calculation: bool = False
+
+        for field in frontend_fields.get_select():
+            current_table_name: str = tables_collection.get_dimension_table_with_field(field["field_name"])[0]
+            table_name, short_table_name = get_table_name_by_field(current_table_name, table_name)
+            backend_name: str = "{}.{}" \
+                .format(short_table_name, tables_collection.get_backend_field_name(table_name, field["field_name"]))
+            current_backend_name = FIELD_NAME_WITH_ALIAS.format(f"{short_tables_collection}.{backend_name}",
+                                                                field["field_name"])
+            select_list.append(current_backend_name)
+            select_for_group_by.append(current_backend_name)
+
+        for field in frontend_fields.get_calculation():
+            current_table_name: str = tables_collection.get_dimension_table_with_field(field["field_name"])[0]
+            table_name, short_table_name = get_table_name_by_field(current_table_name, table_name)
+            backend_name: str = "{}({}.{})" \
+                .format(field["calculation"], short_table_name,
+                        tables_collection.get_backend_field_name(table_name, field["field_name"]))
+            select_list.append(FIELD_NAME_WITH_ALIAS.format(f"{short_tables_collection}.{backend_name}",
+                                                            field["field_name"]))
+
+            has_calculation = True
+
+        for field in frontend_fields.get_where():
+            current_table_name: str = tables_collection.get_dimension_table_with_field(field["field_name"])[0]
+            table_name, short_table_name = get_table_name_by_field(current_table_name, table_name)
+            backend_name: str = f"{short_table_name}.{field['field_name']}"
+            where.append("{} {} {}".format(backend_name, field["where"], field["condition"]))
+
+        return table_name, select_list, select_for_group_by, where, has_calculation
