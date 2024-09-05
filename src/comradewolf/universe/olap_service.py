@@ -6,7 +6,8 @@ from comradewolf.utils.utils import create_field_with_calculation
 
 NO_FACT_TABLES = "No fact tables"
 
-MANY_DIMENSION_TABLES_ERR = "Two or more dimension tables are without fact table are in query. There is no way to join them"
+MANY_DIMENSION_TABLES_ERR = ("Two or more dimension tables are without fact table are in query. There is no way to "
+                             "join them")
 
 FIELD_NAME_WITH_ALIAS = '{} as "{}"'
 
@@ -31,11 +32,6 @@ class OlapService:
         :param tables_collection: Olap tables collection that contains OlapFrontendToBackend fields
         :return: ShortTablesCollectionForSelect
         """
-
-        has_fact_tables: bool = self.has_fact_table_fields(frontend_fields, tables_collection)
-
-        if has_fact_tables is False:
-            raise OlapException(NO_FACT_TABLES)
 
         short_tables_collection: ShortTablesCollectionForSelect = ShortTablesCollectionForSelect()
 

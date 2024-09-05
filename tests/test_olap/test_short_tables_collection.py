@@ -282,11 +282,11 @@ def test_one_dimension_in_aggregate():
     frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(one_dimension)
 
     # Should be only main field left
-    with pytest.raises(OlapException) as raised:
-        olap_service.generate_pre_select_collection(frontend_to_backend_type,
-                                                    olap_structure_generator.get_tables_collection())
+    short_table_only_base: ShortTablesCollectionForSelect \
+        = olap_service.generate_pre_select_collection(frontend_to_backend_type,
+                                                      olap_structure_generator.get_tables_collection())
 
-    assert NO_FACT_TABLES in raised.__str__()
+    assert len(short_table_only_base) == 0
 
 
 def test_one_dimension_no_aggregate():
