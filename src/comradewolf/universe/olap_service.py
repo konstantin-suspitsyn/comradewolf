@@ -169,8 +169,12 @@ class OlapService:
 
         # Field was not yet calculated
         if has_ready_calculation is False:
-            short_tables_collection.add_aggregation_field(table_name, current_field_name, current_calculation,
-                                                          current_field_name, current_calculation, tables_collection)
+
+            field_name_alias_with_calc = tables_collection.get_backend_field_name(table_name, current_field_name)
+
+            short_tables_collection.add_aggregation_field(table_name, current_calculation,
+                                                          current_field_name, current_calculation,
+                                                          field_name_alias_with_calc)
 
             added_dimension = True
 
@@ -179,7 +183,12 @@ class OlapService:
         # Field was calculated
         if has_ready_calculation:
             if len(short_tables_collection[table_name]["all_selects"]) == 0:
-                short_tables_collection.add_select_field(table_name, current_field_name, tables_collection,
+
+                alias_backend_name = create_field_with_calculation(current_field_name, current_calculation)
+
+                backend_name: str = tables_collection.get_backend_field_name(table_name, alias_backend_name)
+
+                short_tables_collection.add_select_field(table_name, alias_backend_name, backend_name,
                                                          current_calculation)
                 added_dimension = True
                 return short_tables_collection, added_dimension
@@ -192,9 +201,17 @@ class OlapService:
             if further_calculation is None:
                 return short_tables_collection, added_dimension
 
+            field_name_alias_with_calc = tables_collection.get_backend_field_name(table_name, current_field_name)
+
+            if field_name_alias_with_calc is None:
+                field_name_alias_with_calc = tables_collection \
+                    .get_backend_field_name(table_name, create_field_with_calculation(current_field_name,
+                                                                                      current_calculation))
+
             # You can aggregate aggregated field
-            short_tables_collection.add_aggregation_field(table_name, current_field_name, current_calculation,
-                                                          current_field_name, current_calculation, tables_collection)
+            short_tables_collection.add_aggregation_field(table_name, current_calculation,
+                                                          current_field_name, current_calculation,
+                                                          field_name_alias_with_calc)
 
             added_dimension = True
 
@@ -247,7 +264,10 @@ class OlapService:
                 # Field is not in fact table
                 if is_field_in_table:
                     if is_where is False:
-                        table_collection_with_select.add_select_field(fact_table_name, current_field, tables_collection)
+
+                        backend_name: str = tables_collection.get_backend_field_name(fact_table_name, current_field)
+
+                        table_collection_with_select.add_select_field(fact_table_name, current_field, backend_name)
                     else:
                         table_collection_with_select.add_where(fact_table_name, current_field,
                                                                front_field_dict)
@@ -268,16 +288,30 @@ class OlapService:
                     continue
 
                 # Field is not in fact table, but you can join dimension table
+
+                service_key_dimension_table: str = tables_collection.get_backend_field_name(join_table_name,
+                                                                                            service_key)
+                service_key_fact_table: str = tables_collection.get_backend_field_name(fact_table_name, service_key)
+
+                current_backend_field: str = tables_collection.get_backend_field_name(join_table_name, current_field)
+
                 if is_where is False:
-                    table_collection_with_select.add_join_field_for_select(fact_table_name, current_field,
-                                                                           join_table_name,
-                                                                           service_key,
-                                                                           tables_collection)
+                    table_collection_with_select \
+                        .add_join_field_for_select(table_name=fact_table_name,
+                                                   field_alias_name=current_field,
+                                                   backend_field=current_backend_field,
+                                                   join_table_name=join_table_name,
+                                                   service_key_dimension_table=service_key_dimension_table,
+                                                   service_key_fact_table=service_key_fact_table,
+                                                   service_key_alias=service_key)
                 else:
-                    table_collection_with_select.add_where_with_join(fact_table_name, current_field,
-                                                                     join_table_name,
-                                                                     service_key,
-                                                                     front_field_dict)
+                    table_collection_with_select \
+                        .add_where_with_join(table_name=fact_table_name,
+                                             backend_field=current_backend_field,
+                                             join_table_name=join_table_name,
+                                             condition=front_field_dict,
+                                             service_key_dimension_table=service_key_dimension_table,
+                                             service_key_fact_table=service_key_fact_table,)
 
         for delete_table in tables_to_delete_from_short_collection:
             del table_collection_with_select[delete_table]
@@ -300,8 +334,10 @@ class OlapService:
         :param short_tables_collection: ShortTablesCollectionForSelect
         :return: tuple[ShortTablesCollectionForSelect, True if join was added]
         """
+        backend_field = table_collection.get_backend_field_name(join_table, current_field_name)
+
         short_tables_collection.add_join_field_for_aggregation(table_name, current_field_name, current_calculation,
-                                                               join_table, service_key, table_collection)
+                                                               join_table, service_key, backend_field)
 
         return short_tables_collection, True
 
@@ -391,10 +427,12 @@ class OlapService:
         for join_table_name in select_join:
             short_join_table_name: str = join_table_name.split(".")[-1]
 
-            service_key: str = select_join[join_table_name]["service_key"]
+            dimension_service_key: str = select_join[join_table_name]["service_key_dimension_table"]
+            fact_service_key: str = select_join[join_table_name]["service_key_fact_table"]
 
-            service_join: str = "ON {}.{} = {}.{}".format(short_table_name, service_key, short_join_table_name,
-                                                          service_key)
+            service_join: str = "ON {}.{} = {}.{}".format(short_table_name, fact_service_key,
+                                                          short_join_table_name,
+                                                          dimension_service_key)
 
             for join_field in select_join[join_table_name]["fields"]:
                 backend_name: str = "{}.{}".format(short_join_table_name, join_field["backend_field"])
@@ -410,10 +448,12 @@ class OlapService:
 
         for join_table_name in aggregation_join:
             short_join_table_name: str = join_table_name.split(".")[-1]
-            service_key: str = aggregation_join[join_table_name]["service_key"]
+            dimension_service_key: str = select_join[join_table_name]["service_key_dimension_table"]
+            fact_service_key: str = select_join[join_table_name]["service_key_fact_table"]
 
-            service_join: str = "ON {}.{} = {}.{}".format(short_table_name, service_key, short_join_table_name,
-                                                          service_key)
+            service_join: str = "ON {}.{} = {}.{}".format(short_table_name, fact_service_key,
+                                                          short_join_table_name,
+                                                          dimension_service_key)
 
             for field in aggregation_join[join_table_name]["fields"]:
                 backend_name: str = "{}({}.{})" \
@@ -442,9 +482,13 @@ class OlapService:
 
         for join_table_name in join_where:
             short_join_table_name: str = join_table_name.split(".")[-1]
-            service_key: str = join_where[join_table_name]["service_key"]
-            service_join: str = "ON {}.{} = {}.{}".format(short_table_name, service_key, short_join_table_name,
-                                                          service_key)
+
+            dimension_service_key: str = select_join[join_table_name]["service_key_dimension_table"]
+            fact_service_key: str = select_join[join_table_name]["service_key_fact_table"]
+
+            service_join: str = "ON {}.{} = {}.{}".format(short_table_name, fact_service_key,
+                                                          short_join_table_name,
+                                                          dimension_service_key)
 
             if join_table_name not in joins:
                 joins[join_table_name] = service_join

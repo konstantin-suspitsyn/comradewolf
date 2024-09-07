@@ -309,7 +309,7 @@ class OlapTablesCollection(UserDict):
 
             dimension_table: OlapDimensionTable = self.data["dimension_tables"][table_name]
 
-            has_field: bool = False
+            has_field: bool
             service_key_name: str = dimension_table.get_service_key()
 
             for field in dimension_table.get_fields():
@@ -601,30 +601,23 @@ class ShortTablesCollectionForSelect(UserDict):
             if table_properties["fields"][field_alias]["calculation_type"] is None:
                 self.data[table_name]["all_selects"].append(field_alias)
 
-    def add_select_field(self, table_name: str, select_field_alias: str, tables_collection: OlapTablesCollection,
-                         calculation: str | None = None) -> None:
+    def add_select_field(self, table_name: str, select_field_alias: str, backend_name: str,
+                         calculation: str | None = None, ) -> None:
         """
         Adds select field to table
 
         If it's data table without calculation, then it will add select
         If data table has calculation on select field, it will use correct alias "{calculation}__{field_alias}"
 
-        :param tables_collection: OlapTablesCollection to get correct backend field
+        :param backend_name:
         :param calculation:
         :param table_name:
         :param select_field_alias:
         :return:
         """
 
-        alias_backend_name: str = select_field_alias
-
-        if calculation is not None:
-            alias_backend_name = create_field_with_calculation(select_field_alias, calculation)
-
-        backend_name: str = tables_collection.get_backend_field_name(table_name, alias_backend_name)
-
         self.data[table_name]["select"].append({"backend_field": backend_name,
-                                                "backend_alias": alias_backend_name,
+                                                "backend_alias": select_field_alias,
                                                 "frontend_field": select_field_alias,
                                                 "frontend_calculation": calculation, })
 
@@ -640,14 +633,8 @@ class ShortTablesCollectionForSelect(UserDict):
         if select_field_alias in self.data[table_name]["all_selects"]:
             self.data[table_name]["all_selects"].remove(select_field_alias)
 
-    def add_aggregation_field(self, table_name: str, field_name_alias: str, calculation: str, frontend_field_name: str,
-                              frontend_aggregation: str, tables_collection: OlapTablesCollection) -> None:
-
-        field_name_alias_with_calc = tables_collection.get_backend_field_name(table_name, field_name_alias)
-
-        if field_name_alias_with_calc is None:
-            field_name_alias_with_calc = tables_collection \
-                .get_backend_field_name(table_name, create_field_with_calculation(field_name_alias, calculation))
+    def add_aggregation_field(self, table_name: str, calculation: str, frontend_field_name: str,
+                              frontend_aggregation: str, field_name_alias_with_calc: str) -> None:
 
         self.data[table_name]["aggregation"].append({"backend_field": field_name_alias_with_calc,
                                                      "frontend_field": frontend_field_name,
@@ -662,23 +649,26 @@ class ShortTablesCollectionForSelect(UserDict):
         """
         del self.data[select_table_name]
 
-    def add_join_field_for_select(self, table_name: str, field_alias_name: str, join_table_name: str,
-                                  service_key_for_join: str, table_collection: OlapTablesCollection) -> None:
+    def add_join_field_for_select(self, table_name: str, field_alias_name: str, backend_field: str,
+                                  join_table_name: str, service_key_alias: str, service_key_dimension_table: str,
+                                  service_key_fact_table: str) -> None:
         """
         Adds join field to table
-        :param table_collection:
+        :param service_key_fact_table:
+        :param service_key_dimension_table:
+        :param backend_field:
         :param table_name:
         :param field_alias_name:
         :param join_table_name:
-        :param service_key_for_join:
+        :param service_key_alias:
         :return:
         """
 
         if join_table_name not in self.data[table_name]["join_select"]:
-            self.data[table_name]["join_select"][join_table_name] = {"service_key": service_key_for_join,
-                                                                     "fields": []}
-
-        backend_field = table_collection.get_backend_field_name(join_table_name, field_alias_name)
+            self.data[table_name]["join_select"][join_table_name] = \
+                {"service_key_fact_table": service_key_fact_table,
+                 "service_key_dimension_table": service_key_dimension_table,
+                 "fields": []}
 
         self.data[table_name]["join_select"][join_table_name]["fields"].append(
             {"backend_field": backend_field,
@@ -687,23 +677,28 @@ class ShortTablesCollectionForSelect(UserDict):
              "frontend_calculation": None, }
         )
 
-        self.__remove_select_field(table_name, service_key_for_join)
+        self.__remove_select_field(table_name, service_key_alias)
 
-    def add_where_with_join(self, table_name: str, field_alias_name: str, join_table_name: str, sk_join_field: str,
-                            condition: dict) -> None:
+    def add_where_with_join(self, table_name: str, backend_field: str, join_table_name: str,
+                            condition: dict, service_key_dimension_table: str, service_key_fact_table: str) -> None:
         """
         Adds join with where field
-        :param table_name:
-        :param field_alias_name:
+        :param service_key_fact_table:
+        :param service_key_dimension_table:
+        :param table_name: fact table name
+        :param backend_field:
         :param join_table_name:
-        :param sk_join_field:
         :param condition:
         :return:
         """
-        if join_table_name not in self.data[table_name]["join_where"]:
-            self.data[table_name]["join_where"][join_table_name] = {"service_key": sk_join_field, "conditions": []}
 
-        self.data[table_name]["join_where"][join_table_name]["conditions"].append({field_alias_name: condition})
+        if join_table_name not in self.data[table_name]["join_where"]:
+            self.data[table_name]["join_where"][join_table_name] = \
+                {"service_key_fact_table": service_key_fact_table,
+                 "service_key_dimension_table": service_key_dimension_table,
+                 "conditions": []}
+
+        self.data[table_name]["join_where"][join_table_name]["conditions"].append({backend_field: condition})
 
     def add_where(self, table_name: str, field_name: str, condition: dict) -> None:
         """
@@ -720,7 +715,7 @@ class ShortTablesCollectionForSelect(UserDict):
         self.data[table_name]["self_where"][field_name].append(condition)
 
     def add_join_field_for_aggregation(self, table_name: str, field_name_alias: str, current_calculation: str,
-                                       join_table_name: str, service_key: str, table_collection: OlapTablesCollection) \
+                                       join_table_name: str, service_key: str, backend_field: str) \
             -> None:
 
         if table_name not in self.data[table_name]["aggregation_joins"]:
@@ -728,8 +723,6 @@ class ShortTablesCollectionForSelect(UserDict):
                 "service_key": service_key,
                 "fields": [],
             }
-
-            backend_field = table_collection.get_backend_field_name(join_table_name, field_name_alias)
 
             self.data[table_name]["aggregation_joins"][join_table_name]["fields"].append({
                 "frontend_field": field_name_alias,
