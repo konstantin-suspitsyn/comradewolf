@@ -6,7 +6,7 @@ from comradewolf.utils.exceptions import OlapException
 from comradewolf.utils.olap_data_types import OlapFrontendToBackend, ShortTablesCollectionForSelect
 from tests.constants_for_testing import get_olap_games_folder
 from tests.test_olap.test_frontend_data import base_table_with_join_no_where_no_calc, base_table_with_join_no_where, \
-    group_by_read_no_where, group_by_also_in_agg, one_agg_value, one_dimension
+    group_by_read_no_where, group_by_also_in_agg, one_agg_value, one_dimension, base_table_with_join_no_gb
 
 BASE_TABLE_NAME = "olap_test.games_olap.base_sales"
 G_BY_Y_YM_TABLE_NAME = "olap_test.games_olap.g_by_y_ym"
@@ -288,7 +288,6 @@ def test_one_dimension_in_aggregate():
 
     assert len(short_table_only_base) == 0
 
-
 def test_one_dimension_no_aggregate():
     # Только одно поле из dimension table
     pass
@@ -296,7 +295,16 @@ def test_one_dimension_no_aggregate():
 
 def test_should_be_only_base_table_no_group_by_join():
     # Поля, которые есть только в базовой таблице без group by c join dimension table
-    pass
+    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_join_no_gb)
+
+    # Should be only main field left
+    short_table_only_base: ShortTablesCollectionForSelect \
+        = olap_service.generate_pre_select_collection(frontend_to_backend_type,
+                                                      olap_structure_generator.get_tables_collection())
+
+    assert len(short_table_only_base) == 1
+
+    assert 1 == 1
 
 
 def test_should_be_only_base_table_with_group_by_join():
@@ -320,14 +328,15 @@ def test_agg_table_wth_join_no_agg():
 
 
 def test_agg_table_wth_join_with_agg():
-    # Aggregate таблицу с join c последующей аггрегацией
+    # Aggregate таблицу с join c последующей агрегацией
     pass
 
 
 if __name__ == "__main__":
-    # test_should_be_only_base_table_no_group_by()
-    # test_should_be_only_base_table_with_group_by()
-    # test_base_table_wth_gb_agg_no_gb()
-    # test_base_agg_wth_agg()
-    # test_one_value_in_aggregate()
+    test_should_be_only_base_table_no_group_by()
+    test_should_be_only_base_table_with_group_by()
+    test_base_table_wth_gb_agg_no_gb()
+    test_base_agg_wth_agg()
+    test_one_value_in_aggregate()
     test_one_dimension_in_aggregate()
+    test_should_be_only_base_table_no_group_by_join()

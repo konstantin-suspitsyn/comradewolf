@@ -3,5 +3,5 @@ schema = "games_olap"
 database = "olap_test"
 
 [fields]
-sk_id_publisher = {field_type = "service_key", alias = "sk_id_publisher", front_name="none"}
+id = {field_type = "service_key", alias = "sk_id_publisher", front_name="none"}
 publisher_name = {field_type = "dimension", alias = "publisher_name", front_name="Publisher Name", use_sk_for_count="True"}

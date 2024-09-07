@@ -34,3 +34,10 @@ one_agg_value: dict = {'SELECT': [],
 one_dimension: dict = {'SELECT': [{'field_name': 'bk_game_id'}],
                        'CALCULATION': [],
                        'WHERE': []}
+
+base_table_with_join_no_gb: dict = {'SELECT': [{'field_name': 'year'},
+                                               {'field_name': 'pcs'},
+                                               {'field_name': 'bk_id_game'},
+                                               {"field_name": "publisher_name"}],
+                                    'CALCULATION': [],
+                                    'WHERE': []}
