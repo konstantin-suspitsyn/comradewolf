@@ -6,13 +6,16 @@ from comradewolf.utils.exceptions import OlapException
 from comradewolf.utils.olap_data_types import OlapFrontendToBackend, ShortTablesCollectionForSelect
 from tests.constants_for_testing import get_olap_games_folder
 from tests.test_olap.test_frontend_data import base_table_with_join_no_where_no_calc, base_table_with_join_no_where, \
-    group_by_read_no_where, group_by_also_in_agg, one_agg_value, one_dimension, base_table_with_join_no_gb
+    group_by_read_no_where, group_by_also_in_agg, one_agg_value, one_dimension, base_table_with_join_no_gb, \
+    base_table_with_and_agg_with_join, base_table_with_and_agg
 
 BASE_TABLE_NAME = "olap_test.games_olap.base_sales"
 G_BY_Y_YM_TABLE_NAME = "olap_test.games_olap.g_by_y_ym"
 G_BY_Y_TABLE_NAME = "olap_test.games_olap.g_by_y"
 G_BY_Y_YM_P_TABLE_NAME = "olap_test.games_olap.g_by_y_ym_p"
 G_BY_Y_P_TABLE_NAME = "olap_test.games_olap.g_by_y_p"
+DIM_GAMES = "olap_test.games_olap.dim_game"
+DIM_PUBLISHER = "olap_test.games_olap.dim_publisher"
 
 olap_structure_generator: OlapStructureGenerator = OlapStructureGenerator(get_olap_games_folder())
 olap_service: OlapService = OlapService()
@@ -288,6 +291,7 @@ def test_one_dimension_in_aggregate():
 
     assert len(short_table_only_base) == 0
 
+
 def test_one_dimension_no_aggregate():
     # Только одно поле из dimension table
     pass
@@ -304,39 +308,134 @@ def test_should_be_only_base_table_no_group_by_join():
 
     assert len(short_table_only_base) == 1
 
-    assert 1 == 1
+    assert BASE_TABLE_NAME in short_table_only_base
+    assert len(short_table_only_base.get_selects(BASE_TABLE_NAME)) == 2
 
+    fields = gather_dict_data(short_table_only_base.get_selects(BASE_TABLE_NAME))
 
-def test_should_be_only_base_table_with_group_by_join():
-    # Поля, которые есть в базовой таблице с group by c join dimension table
-    pass
+    assert "year" in fields
+    assert "pcs" in fields
+
+    assert len(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME)) == 0
+
+    js = short_table_only_base.get_join_select(BASE_TABLE_NAME)
+    assert len(js) == 2
+
+    assert DIM_PUBLISHER in js
+    assert DIM_GAMES in js
+
+    assert "publisher_name_field" == js[DIM_PUBLISHER]["fields"][0]["backend_field"]
+    assert "id" == js[DIM_PUBLISHER]["service_key_dimension_table"]
+    assert "sk_id_publisher" == js[DIM_PUBLISHER]["service_key_fact_table"]
+
+    assert len(short_table_only_base.get_aggregation_joins(BASE_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_join_where(BASE_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_self_where(BASE_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_all_selects(BASE_TABLE_NAME)) == 8
 
 
 def test_base_table_wth_gb_agg_no_gb_join():
     # Поля, которые есть в базовой таблице с group by и в агрегатной таблице без group by c join dimension table
-    pass
+    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_and_agg)
 
+    short_table_only_base: ShortTablesCollectionForSelect \
+        = olap_service.generate_pre_select_collection(frontend_to_backend_type,
+                                                      olap_structure_generator.get_tables_collection())
 
-def test_base_agg_wth_agg_join():
-    # Поля, которые есть в базовой таблице с group by и в агрегатной таблице с group by c join dimension table
-    pass
+    assert len(short_table_only_base) == 3
+    assert BASE_TABLE_NAME in short_table_only_base
+    assert G_BY_Y_P_TABLE_NAME in short_table_only_base
+    assert G_BY_Y_YM_P_TABLE_NAME in short_table_only_base
 
+    # BASE_TABLE_NAME
+    assert len(short_table_only_base.get_selects(BASE_TABLE_NAME)) == 1
+    fields_base_table = gather_dict_data(short_table_only_base.get_selects(BASE_TABLE_NAME))
+    assert "year" in fields_base_table
+    assert len(short_table_only_base.get_join_select(BASE_TABLE_NAME)) == 1
+    assert DIM_PUBLISHER in short_table_only_base.get_join_select(BASE_TABLE_NAME)
 
-def test_agg_table_wth_join_no_agg():
-    # Aggregate таблицу с join
-    pass
+    fields_base_publisher = gather_dict_data(short_table_only_base
+                                             .get_join_select(BASE_TABLE_NAME)[DIM_PUBLISHER]["fields"])
+
+    assert "publisher_name_field" in fields_base_publisher
+
+    assert len(short_table_only_base.get_self_where(BASE_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_aggregation_joins(BASE_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_join_where(BASE_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME)) == 2
+
+    agg_fields_base = gather_dict_data(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME))
+    assert "sales_rub" in agg_fields_base
+    assert "pcs" in agg_fields_base
+
+    assert len(short_table_only_base.get_all_selects(BASE_TABLE_NAME)) == 10
+
+    # G_BY_Y_P_TABLE_NAME
+    assert len(short_table_only_base.get_selects(G_BY_Y_P_TABLE_NAME)) == 3
+    fields_g_by_y_p_table = gather_dict_data(short_table_only_base.get_selects(G_BY_Y_P_TABLE_NAME))
+    assert "year" in fields_g_by_y_p_table
+    assert "sum_pcs" in fields_g_by_y_p_table
+    assert "sum_sales_rub" in fields_g_by_y_p_table
+    assert len(short_table_only_base.get_join_select(G_BY_Y_P_TABLE_NAME)) == 1
+    assert DIM_PUBLISHER in short_table_only_base.get_join_select(G_BY_Y_P_TABLE_NAME)
+
+    fields_base_g_p_y_publisher = gather_dict_data(short_table_only_base
+                                                   .get_join_select(G_BY_Y_P_TABLE_NAME)[DIM_PUBLISHER]["fields"])
+
+    assert "publisher_name_field" in fields_base_g_p_y_publisher
+
+    assert len(short_table_only_base.get_self_where(G_BY_Y_P_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_aggregation_joins(G_BY_Y_P_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_join_where(G_BY_Y_P_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_aggregations_without_join(G_BY_Y_P_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_all_selects(G_BY_Y_P_TABLE_NAME)) == 0
+
+    # G_BY_Y_YM_P_TABLE_NAME
+
+    assert len(short_table_only_base.get_selects(G_BY_Y_YM_P_TABLE_NAME)) == 1
+    fields_base_table_ym = gather_dict_data(short_table_only_base.get_selects(G_BY_Y_YM_P_TABLE_NAME))
+    assert "year" in fields_base_table_ym
+    assert len(short_table_only_base.get_join_select(G_BY_Y_YM_P_TABLE_NAME)) == 1
+    assert DIM_PUBLISHER in short_table_only_base.get_join_select(G_BY_Y_YM_P_TABLE_NAME)
+
+    fields_base_publisher_ym = gather_dict_data(short_table_only_base
+                                                .get_join_select(G_BY_Y_YM_P_TABLE_NAME)[DIM_PUBLISHER]["fields"])
+
+    assert "publisher_name_field" in fields_base_publisher_ym
+
+    assert len(short_table_only_base.get_self_where(G_BY_Y_YM_P_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_aggregation_joins(G_BY_Y_YM_P_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_join_where(G_BY_Y_YM_P_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_aggregations_without_join(G_BY_Y_YM_P_TABLE_NAME)) == 2
+
+    agg_fields_base = gather_dict_data(short_table_only_base.get_aggregations_without_join(G_BY_Y_YM_P_TABLE_NAME))
+    assert "sum_pcs" in agg_fields_base
+    assert "sum_sales_rub" in agg_fields_base
+
+    assert len(short_table_only_base.get_all_selects(G_BY_Y_YM_P_TABLE_NAME)) == 1
+
+    assert 1 == 1
 
 
 def test_agg_table_wth_join_with_agg():
     # Aggregate таблицу с join c последующей агрегацией
-    pass
+    # Поля, которые есть в базовой таблице с group by и в агрегатной таблице без group by c join dimension table
+    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_and_agg_with_join)
+
+    short_table_only_base: ShortTablesCollectionForSelect \
+        = olap_service.generate_pre_select_collection(frontend_to_backend_type,
+                                                      olap_structure_generator.get_tables_collection())
+
+    assert 1 == 1
 
 
 if __name__ == "__main__":
-    test_should_be_only_base_table_no_group_by()
-    test_should_be_only_base_table_with_group_by()
-    test_base_table_wth_gb_agg_no_gb()
-    test_base_agg_wth_agg()
-    test_one_value_in_aggregate()
-    test_one_dimension_in_aggregate()
-    test_should_be_only_base_table_no_group_by_join()
+    # test_should_be_only_base_table_no_group_by()
+    # test_should_be_only_base_table_with_group_by()
+    # test_base_table_wth_gb_agg_no_gb()
+    # test_base_agg_wth_agg()
+    # test_one_value_in_aggregate()
+    # test_one_dimension_in_aggregate()
+    # test_should_be_only_base_table_no_group_by_join()
+    test_base_table_wth_gb_agg_no_gb_join()
+    test_agg_table_wth_join_with_agg()
