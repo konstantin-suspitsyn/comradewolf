@@ -426,16 +426,89 @@ def test_agg_table_wth_join_with_agg():
         = olap_service.generate_pre_select_collection(frontend_to_backend_type,
                                                       olap_structure_generator.get_tables_collection())
 
+    assert len(short_table_only_base) == 3
+    assert BASE_TABLE_NAME in short_table_only_base
+    assert G_BY_Y_P_TABLE_NAME in short_table_only_base
+    assert G_BY_Y_YM_P_TABLE_NAME in short_table_only_base
+
+    # BASE_TABLE_NAME
+    assert len(short_table_only_base.get_selects(BASE_TABLE_NAME)) == 1
+    fields_base_table = gather_dict_data(short_table_only_base.get_selects(BASE_TABLE_NAME))
+    assert "year" in fields_base_table
+    assert len(short_table_only_base.get_join_select(BASE_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_self_where(BASE_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_aggregation_joins(BASE_TABLE_NAME)) == 1
+
+    fields_base_publisher = gather_dict_data(short_table_only_base
+                                             .get_aggregation_joins(BASE_TABLE_NAME)[DIM_PUBLISHER]["fields"])
+
+    assert "publisher_name_field" in fields_base_publisher
+    assert len(short_table_only_base.get_join_where(BASE_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME)) == 2
+
+    agg_fields_base = gather_dict_data(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME))
+    assert "sales_rub" in agg_fields_base
+    assert "pcs" in agg_fields_base
+
+    assert len(short_table_only_base.get_all_selects(BASE_TABLE_NAME)) == 11
+
+    # G_BY_Y_P_TABLE_NAME
+    assert len(short_table_only_base.get_selects(G_BY_Y_P_TABLE_NAME)) == 1
+    fields_g_by_y_p_table = gather_dict_data(short_table_only_base.get_selects(G_BY_Y_P_TABLE_NAME))
+    assert "year" in fields_g_by_y_p_table
+    assert len(short_table_only_base.get_join_select(G_BY_Y_P_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_self_where(G_BY_Y_P_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_aggregation_joins(G_BY_Y_P_TABLE_NAME)) == 1
+
+    assert DIM_PUBLISHER in short_table_only_base.get_aggregation_joins(G_BY_Y_P_TABLE_NAME)
+
+    assert len(short_table_only_base.get_join_where(G_BY_Y_P_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_aggregations_without_join(G_BY_Y_P_TABLE_NAME)) == 2
+
+    agg_g_by_y_p = gather_dict_data(short_table_only_base.get_aggregations_without_join(G_BY_Y_P_TABLE_NAME))
+
+    assert "sum_pcs" in agg_g_by_y_p
+    assert "sum_sales_rub" in agg_g_by_y_p
+
+    assert len(short_table_only_base.get_all_selects(G_BY_Y_P_TABLE_NAME)) == 1
+    assert "sk_id_publisher" in short_table_only_base.get_all_selects(G_BY_Y_P_TABLE_NAME)
+
+    # # G_BY_Y_YM_P_TABLE_NAME
+
+    assert len(short_table_only_base.get_selects(G_BY_Y_YM_P_TABLE_NAME)) == 1
+    fields_base_table_ym = gather_dict_data(short_table_only_base.get_selects(G_BY_Y_YM_P_TABLE_NAME))
+    assert "year" in fields_base_table_ym
+    assert len(short_table_only_base.get_join_select(G_BY_Y_YM_P_TABLE_NAME)) == 0
+
+    assert len(short_table_only_base.get_self_where(G_BY_Y_YM_P_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_aggregation_joins(G_BY_Y_YM_P_TABLE_NAME)) == 1
+
+    assert DIM_PUBLISHER in short_table_only_base.get_aggregation_joins(G_BY_Y_YM_P_TABLE_NAME)
+
+    fields_base_publisher_ym = gather_dict_data(short_table_only_base
+                                                .get_aggregation_joins(G_BY_Y_YM_P_TABLE_NAME)[DIM_PUBLISHER]["fields"])
+
+    assert "publisher_name_field" in fields_base_publisher_ym
+
+    assert len(short_table_only_base.get_join_where(G_BY_Y_YM_P_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_aggregations_without_join(G_BY_Y_YM_P_TABLE_NAME)) == 2
+
+    agg_fields_base = gather_dict_data(short_table_only_base.get_aggregations_without_join(G_BY_Y_YM_P_TABLE_NAME))
+    assert "sum_pcs" in agg_fields_base
+    assert "sum_sales_rub" in agg_fields_base
+
+    assert len(short_table_only_base.get_all_selects(G_BY_Y_YM_P_TABLE_NAME)) == 2
+
     assert 1 == 1
 
 
 if __name__ == "__main__":
-    # test_should_be_only_base_table_no_group_by()
-    # test_should_be_only_base_table_with_group_by()
-    # test_base_table_wth_gb_agg_no_gb()
-    # test_base_agg_wth_agg()
-    # test_one_value_in_aggregate()
-    # test_one_dimension_in_aggregate()
-    # test_should_be_only_base_table_no_group_by_join()
+    test_should_be_only_base_table_no_group_by()
+    test_should_be_only_base_table_with_group_by()
+    test_base_table_wth_gb_agg_no_gb()
+    test_base_agg_wth_agg()
+    test_one_value_in_aggregate()
+    test_one_dimension_in_aggregate()
+    test_should_be_only_base_table_no_group_by_join()
     test_base_table_wth_gb_agg_no_gb_join()
     test_agg_table_wth_join_with_agg()
