@@ -7,7 +7,7 @@ from comradewolf.utils.olap_data_types import OlapFrontendToBackend, ShortTables
 from tests.constants_for_testing import get_olap_games_folder
 from tests.test_olap.test_frontend_data import base_table_with_join_no_where_no_calc, base_table_with_join_no_where, \
     group_by_read_no_where, group_by_also_in_agg, one_agg_value, one_dimension, base_table_with_join_no_gb, \
-    base_table_with_and_agg_with_join, base_table_with_and_agg
+    base_table_with_and_agg_with_join, base_table_with_and_agg, base_table_with_and_agg_without_join
 
 BASE_TABLE_NAME = "olap_test.games_olap.base_sales"
 G_BY_Y_YM_TABLE_NAME = "olap_test.games_olap.g_by_y_ym"
@@ -499,16 +499,42 @@ def test_agg_table_wth_join_with_agg():
 
     assert len(short_table_only_base.get_all_selects(G_BY_Y_YM_P_TABLE_NAME)) == 2
 
-    assert 1 == 1
+
+def test_service_key_count():
+    # Тест для калькуляции count на service_key
+    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_and_agg_without_join)
+
+    short_table_only_base: ShortTablesCollectionForSelect \
+        = olap_service.generate_pre_select_collection(frontend_to_backend_type,
+                                                      olap_structure_generator.get_tables_collection())
+
+    assert len(short_table_only_base) == 1
+    assert BASE_TABLE_NAME in short_table_only_base
+
+    assert len(short_table_only_base.get_selects(BASE_TABLE_NAME)) == 2
+    fields_base_table = gather_dict_data(short_table_only_base.get_selects(BASE_TABLE_NAME))
+    assert "year" in fields_base_table
+    assert "english" in fields_base_table
+    assert len(short_table_only_base.get_join_select(BASE_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_self_where(BASE_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_aggregation_joins(BASE_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_join_where(BASE_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME)) == 1
+
+    agg_fields_base = gather_dict_data(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME))
+    assert "sk_id_game" in agg_fields_base
+
+    assert len(short_table_only_base.get_all_selects(BASE_TABLE_NAME)) == 10
 
 
 if __name__ == "__main__":
-    test_should_be_only_base_table_no_group_by()
-    test_should_be_only_base_table_with_group_by()
-    test_base_table_wth_gb_agg_no_gb()
-    test_base_agg_wth_agg()
-    test_one_value_in_aggregate()
-    test_one_dimension_in_aggregate()
-    test_should_be_only_base_table_no_group_by_join()
-    test_base_table_wth_gb_agg_no_gb_join()
+    # test_should_be_only_base_table_no_group_by()
+    # test_should_be_only_base_table_with_group_by()
+    # test_base_table_wth_gb_agg_no_gb()
+    # test_base_agg_wth_agg()
+    # test_one_value_in_aggregate()
+    # test_one_dimension_in_aggregate()
+    # test_should_be_only_base_table_no_group_by_join()
+    # test_base_table_wth_gb_agg_no_gb_join()
     test_agg_table_wth_join_with_agg()
+    # test_service_key_count()

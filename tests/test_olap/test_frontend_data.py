@@ -48,8 +48,12 @@ base_table_with_and_agg: dict = {'SELECT': [{'field_name': 'year'},
                                                  {'field_name': 'pcs', 'calculation': 'sum'}],
                                  'WHERE': []}
 
-base_table_with_and_agg_with_join: dict = {'SELECT': [{'field_name': 'year'},],
+base_table_with_and_agg_with_join: dict = {'SELECT': [{'field_name': 'year'}, ],
                                            'CALCULATION': [{'field_name': 'sales_rub', 'calculation': 'sum'},
                                                            {'field_name': 'pcs', 'calculation': 'sum'},
                                                            {'field_name': 'publisher_name', 'calculation': 'count'}],
                                            'WHERE': []}
+
+base_table_with_and_agg_without_join: dict = {'SELECT': [{'field_name': 'year'}, {"field_name": "english"}],
+                                              'CALCULATION': [{'field_name': 'game_name', 'calculation': 'count'}],
+                                              'WHERE': []}

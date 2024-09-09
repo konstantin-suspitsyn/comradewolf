@@ -92,7 +92,7 @@ class OlapService:
                 sk = dimension_fields[1]
 
                 # Can we use service key for count
-                if (current_calculation in [OlapCalculations.COUNT, OlapCalculations.COUNT_DISTINCT]) & \
+                if (current_calculation in [OlapCalculations.COUNT.value, OlapCalculations.COUNT_DISTINCT.value]) & \
                         tables_collection.get_is_sk_for_count(dimension_table, current_field_name):
                     can_use_sk = True
 
