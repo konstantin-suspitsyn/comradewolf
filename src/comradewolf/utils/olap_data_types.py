@@ -700,19 +700,19 @@ class ShortTablesCollectionForSelect(UserDict):
 
         self.data[table_name]["join_where"][join_table_name]["conditions"].append({backend_field: condition})
 
-    def add_where(self, table_name: str, field_name: str, condition: dict) -> None:
+    def add_where(self, table_name: str, backend_field_name: str, condition: dict) -> None:
         """
         Adds where field to table
         If where is in table without join
+        :param backend_field_name:
         :param table_name:
-        :param field_name:
         :param condition:
         :return:
         """
-        if field_name not in self.data[table_name]["self_where"]:
-            self.data[table_name]["self_where"][field_name] = []
+        if backend_field_name not in self.data[table_name]["self_where"]:
+            self.data[table_name]["self_where"][backend_field_name] = []
 
-        self.data[table_name]["self_where"][field_name].append(condition)
+        self.data[table_name]["self_where"][backend_field_name].append(condition)
 
     def add_join_field_for_aggregation(self, table_name: str, field_name_alias: str, current_calculation: str,
                                        join_table_name: str, service_key: str, backend_field: str) \

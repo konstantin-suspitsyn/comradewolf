@@ -263,14 +263,12 @@ class OlapService:
                 # Field is in the fact table. Add select or where move to next table in loop
                 # Field is not in fact table
                 if is_field_in_table:
+                    backend_name: str = tables_collection.get_backend_field_name(fact_table_name, current_field)
                     if is_where is False:
-
-                        backend_name: str = tables_collection.get_backend_field_name(fact_table_name, current_field)
-
                         table_collection_with_select.add_select_field(fact_table_name, current_field, backend_name)
                     else:
-                        table_collection_with_select.add_where(fact_table_name, current_field,
-                                                               front_field_dict)
+                        table_collection_with_select.add_where(fact_table_name, backend_name,
+                                                               front_field_dict, )
                     continue
 
                 # Not dimension table and not in fact table

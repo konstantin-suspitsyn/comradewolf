@@ -7,7 +7,9 @@ from comradewolf.utils.olap_data_types import OlapFrontendToBackend, ShortTables
 from tests.constants_for_testing import get_olap_games_folder
 from tests.test_olap.test_frontend_data import base_table_with_join_no_where_no_calc, base_table_with_join_no_where, \
     group_by_read_no_where, group_by_also_in_agg, one_agg_value, one_dimension, base_table_with_join_no_gb, \
-    base_table_with_and_agg_with_join, base_table_with_and_agg, base_table_with_and_agg_without_join
+    base_table_with_and_agg_with_join, base_table_with_and_agg, base_table_with_and_agg_without_join, \
+    base_table_with_no_join_wht_where, base_table_with_join_wht_where, base_table_with_join_with_where, \
+    base_table_with_join_wth_where
 
 BASE_TABLE_NAME = "olap_test.games_olap.base_sales"
 G_BY_Y_YM_TABLE_NAME = "olap_test.games_olap.g_by_y_ym"
@@ -527,6 +529,136 @@ def test_service_key_count():
     assert len(short_table_only_base.get_all_selects(BASE_TABLE_NAME)) == 10
 
 
+def test_where_in_base_table():
+    # where в базовой таблице
+    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_no_join_wht_where)
+
+    short_table_only_base: ShortTablesCollectionForSelect \
+        = olap_service.generate_pre_select_collection(frontend_to_backend_type,
+                                                      olap_structure_generator.get_tables_collection())
+
+    assert len(short_table_only_base) == 1
+    assert BASE_TABLE_NAME in short_table_only_base
+    assert len(short_table_only_base.get_selects(BASE_TABLE_NAME)) == 2
+    assert len(short_table_only_base.get_all_selects(BASE_TABLE_NAME)) == 10
+
+    assert len(short_table_only_base.get_self_where(BASE_TABLE_NAME)) == 2
+
+    assert "price" in short_table_only_base.get_self_where(BASE_TABLE_NAME)
+    assert "release_date_f" in short_table_only_base.get_self_where(BASE_TABLE_NAME)
+
+    assert len(short_table_only_base.get_aggregation_joins(BASE_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_join_select(BASE_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_join_where(BASE_TABLE_NAME)) == 0
+
+    fields = gather_dict_data(short_table_only_base.get_selects(BASE_TABLE_NAME))
+
+    assert "year" in fields
+    assert "pcs" in fields
+
+
+def test_where_in_join():
+    # where в join
+    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_join_wht_where)
+
+    short_table_only_base: ShortTablesCollectionForSelect \
+        = olap_service.generate_pre_select_collection(frontend_to_backend_type,
+                                                      olap_structure_generator.get_tables_collection())
+
+    assert len(short_table_only_base) == 1
+    assert BASE_TABLE_NAME in short_table_only_base
+    assert len(short_table_only_base.get_selects(BASE_TABLE_NAME)) == 2
+    assert len(short_table_only_base.get_all_selects(BASE_TABLE_NAME)) == 10
+
+    assert len(short_table_only_base.get_self_where(BASE_TABLE_NAME)) == 2
+
+    assert "price" in short_table_only_base.get_self_where(BASE_TABLE_NAME)
+    assert "release_date_f" in short_table_only_base.get_self_where(BASE_TABLE_NAME)
+
+    assert len(short_table_only_base.get_aggregation_joins(BASE_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_join_select(BASE_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_join_where(BASE_TABLE_NAME)) == 1
+
+    assert DIM_GAMES in short_table_only_base.get_join_where(BASE_TABLE_NAME)
+
+    fields = gather_dict_data(short_table_only_base.get_selects(BASE_TABLE_NAME))
+
+    assert "year" in fields
+    assert "pcs" in fields
+
+    assert 1 == 1
+
+
+def test_where_with_agg_in_base_table():
+    # where c агрегацией в базовой таблице
+    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_join_with_where)
+
+    # Should be only main field left
+    short_table_only_base: ShortTablesCollectionForSelect \
+        = olap_service.generate_pre_select_collection(frontend_to_backend_type,
+                                                      olap_structure_generator.get_tables_collection())
+
+    assert len(short_table_only_base) == 1
+    assert BASE_TABLE_NAME in short_table_only_base
+    assert len(short_table_only_base.get_selects(BASE_TABLE_NAME)) == 2
+    assert len(short_table_only_base.get_all_selects(BASE_TABLE_NAME)) == 10
+
+    assert len(short_table_only_base.get_self_where(BASE_TABLE_NAME)) == 2
+
+    assert "price" in short_table_only_base.get_self_where(BASE_TABLE_NAME)
+    assert "release_date_f" in short_table_only_base.get_self_where(BASE_TABLE_NAME)
+
+    assert len(short_table_only_base.get_aggregation_joins(BASE_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_join_select(BASE_TABLE_NAME)) == 0
+    assert len(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME)) == 3
+    assert len(short_table_only_base.get_join_where(BASE_TABLE_NAME)) == 0
+
+    fields = gather_dict_data(short_table_only_base.get_selects(BASE_TABLE_NAME))
+
+    assert "year" in fields
+    assert "pcs" in fields
+
+    assert 1 == 1
+
+
+def test_where_with_agg_in_join():
+    # where c агрегацией в join
+    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_join_wth_where)
+
+    # Should be only main field left
+    short_table_only_base: ShortTablesCollectionForSelect \
+        = olap_service.generate_pre_select_collection(frontend_to_backend_type,
+                                                      olap_structure_generator.get_tables_collection())
+
+    assert len(short_table_only_base) == 1
+    assert BASE_TABLE_NAME in short_table_only_base
+
+    assert len(short_table_only_base.get_selects(BASE_TABLE_NAME)) == 2
+    assert len(short_table_only_base.get_all_selects(BASE_TABLE_NAME)) == 9
+
+    assert len(short_table_only_base.get_self_where(BASE_TABLE_NAME)) == 2
+    assert len(short_table_only_base.get_aggregation_joins(BASE_TABLE_NAME)) == 0
+
+    assert "price" in short_table_only_base.get_self_where(BASE_TABLE_NAME)
+    assert "release_date_f" in short_table_only_base.get_self_where(BASE_TABLE_NAME)
+
+    assert len(short_table_only_base.get_join_select(BASE_TABLE_NAME)) == 1
+
+    join_tables = short_table_only_base.get_join_select(BASE_TABLE_NAME)
+    assert len(join_tables) == 1
+    assert "olap_test.games_olap.dim_game" in join_tables
+    assert "bk_game_id" in gather_dict_data(join_tables["olap_test.games_olap.dim_game"]["fields"])
+
+    assert len(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME)) == 3
+    assert len(short_table_only_base.get_join_where(BASE_TABLE_NAME)) == 1
+
+    assert DIM_GAMES in short_table_only_base.get_join_where(BASE_TABLE_NAME)
+
+    assert 1 == 1
+
+
 if __name__ == "__main__":
     # test_should_be_only_base_table_no_group_by()
     # test_should_be_only_base_table_with_group_by()
@@ -536,5 +668,9 @@ if __name__ == "__main__":
     # test_one_dimension_in_aggregate()
     # test_should_be_only_base_table_no_group_by_join()
     # test_base_table_wth_gb_agg_no_gb_join()
-    test_agg_table_wth_join_with_agg()
+    # test_agg_table_wth_join_with_agg()
     # test_service_key_count()
+    # test_where_in_base_table()
+    # test_where_in_join()
+    # test_where_with_agg_in_base_table()
+    test_where_with_agg_in_join()
