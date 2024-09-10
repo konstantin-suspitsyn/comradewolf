@@ -57,3 +57,49 @@ base_table_with_and_agg_with_join: dict = {'SELECT': [{'field_name': 'year'}, ],
 base_table_with_and_agg_without_join: dict = {'SELECT': [{'field_name': 'year'}, {"field_name": "english"}],
                                               'CALCULATION': [{'field_name': 'game_name', 'calculation': 'count'}],
                                               'WHERE': []}
+
+# This should only use base_sales table_no_where
+base_table_with_no_join_wht_where: dict = {'SELECT': [{'field_name': 'year'},
+                                                      {'field_name': 'pcs'}],
+                                           'CALCULATION': [],
+                                           'WHERE': [{'field_name': 'release_date',
+                                                      'where': '>', 'condition': '2024-01-01'},
+                                                     {'field_name': 'price',
+                                                      'where': '>', 'condition': '1000'}
+                                                     ]}
+
+base_table_with_join_wht_where: dict = {'SELECT': [{'field_name': 'year'},
+                                                   {'field_name': 'pcs'}],
+                                        'CALCULATION': [],
+                                        'WHERE': [{'field_name': 'release_date',
+                                                   'where': '>', 'condition': '2024-01-01'},
+                                                  {'field_name': 'price',
+                                                   'where': '>', 'condition': '1000'},
+                                                  {'field_name': 'game_name',
+                                                   'where': '=', 'condition': 'The Best Game'}
+                                                  ]}
+
+# This should only use base_sales table
+base_table_with_join_with_where: dict = {'SELECT': [{'field_name': 'year'},
+                                                    {'field_name': 'pcs'}, ],
+                                         'CALCULATION': [{'field_name': 'achievements', 'calculation': 'sum'},
+                                                         {'field_name': 'pcs', 'calculation': 'sum'},
+                                                         {'field_name': 'price', 'calculation': 'sum'}],
+                                         'WHERE': [{'field_name': 'release_date',
+                                                    'where': '>', 'condition': '2024-01-01'},
+                                                   {'field_name': 'price',
+                                                    'where': '>', 'condition': '1000'}]}
+
+base_table_with_join_wth_where: dict = {'SELECT': [{'field_name': 'year'},
+                                                   {'field_name': 'pcs'},
+                                                   {'field_name': 'bk_id_game'}],
+                                        'CALCULATION': [{'field_name': 'achievements', 'calculation': 'sum'},
+                                                        {'field_name': 'pcs', 'calculation': 'sum'},
+                                                        {'field_name': 'price', 'calculation': 'sum'}],
+                                        'WHERE': [{'field_name': 'release_date',
+                                                   'where': '>', 'condition': '2024-01-01'},
+                                                  {'field_name': 'price',
+                                                   'where': '>', 'condition': '1000'},
+                                                  {'field_name': 'game_name',
+                                                   'where': '=', 'condition': 'The Best Game'}
+                                                  ]}
