@@ -660,7 +660,7 @@ def test_where_with_agg_in_join():
 
 
 if __name__ == "__main__":
-    # test_should_be_only_base_table_no_group_by()
+    test_should_be_only_base_table_no_group_by()
     # test_should_be_only_base_table_with_group_by()
     # test_base_table_wth_gb_agg_no_gb()
     # test_base_agg_wth_agg()

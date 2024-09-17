@@ -373,7 +373,15 @@ class OlapService:
 
         return temp_structure
 
-    def generate_structure_for_each_piece_of_join(self, short_tables_collection, table):
+    def generate_structure_for_each_piece_of_join(self, short_tables_collection: ShortTablesCollectionForSelect,
+                                                  table: str) -> tuple[list[str], list[str], dict, list[str], bool]:
+
+        """
+        :param short_tables_collection:
+        :param table:
+        :return:
+        """
+
         # TODO: REFACTOR IT
 
         # alias table name
