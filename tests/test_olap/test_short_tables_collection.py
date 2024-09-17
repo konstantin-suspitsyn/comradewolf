@@ -1,5 +1,6 @@
 import pytest
 
+from comradewolf.universe.olap_language_select_builders import OlapPostgresSelectBuilder
 from comradewolf.universe.olap_service import OlapService, NO_FACT_TABLES
 from comradewolf.universe.olap_structure_generator import OlapStructureGenerator
 from comradewolf.utils.exceptions import OlapException
@@ -20,7 +21,8 @@ DIM_GAMES = "olap_test.games_olap.dim_game"
 DIM_PUBLISHER = "olap_test.games_olap.dim_publisher"
 
 olap_structure_generator: OlapStructureGenerator = OlapStructureGenerator(get_olap_games_folder())
-olap_service: OlapService = OlapService()
+olap_select_builder = OlapPostgresSelectBuilder()
+olap_service: OlapService = OlapService(olap_select_builder)
 
 
 def gather_dict_data(fields_with_front_and_back: list) -> list:

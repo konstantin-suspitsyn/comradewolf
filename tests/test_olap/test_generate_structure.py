@@ -1,3 +1,4 @@
+from comradewolf.universe.olap_language_select_builders import OlapPostgresSelectBuilder
 from comradewolf.universe.olap_service import OlapService
 from comradewolf.universe.olap_structure_generator import OlapStructureGenerator
 from comradewolf.utils.olap_data_types import OlapFrontendToBackend, ShortTablesCollectionForSelect
@@ -9,7 +10,8 @@ from tests.test_olap.test_frontend_data import base_table_with_join_no_where_no_
     base_table_with_join_wth_where
 
 olap_structure_generator: OlapStructureGenerator = OlapStructureGenerator(get_olap_games_folder())
-olap_service: OlapService = OlapService()
+olap_select_builder = OlapPostgresSelectBuilder()
+olap_service: OlapService = OlapService(olap_select_builder)
 
 BASE_TABLE_NAME = "olap_test.games_olap.base_sales"
 G_BY_Y_YM_TABLE_NAME = "olap_test.games_olap.g_by_y_ym"

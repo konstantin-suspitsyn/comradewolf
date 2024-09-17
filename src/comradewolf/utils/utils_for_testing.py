@@ -1,3 +1,4 @@
+from comradewolf.universe.olap_language_select_builders import OlapPostgresSelectBuilder
 from comradewolf.universe.olap_service import OlapService
 from comradewolf.universe.olap_structure_generator import OlapStructureGenerator
 from comradewolf.utils.olap_data_types import OlapFrontendToBackend, ShortTablesCollectionForSelect
@@ -24,7 +25,8 @@ def create_short_select_collection_to_test(path_to_folder: str, from_frontend: d
 def create_olap_service_structure(from_frontend, path_to_folder):
     olap_structure_generator: OlapStructureGenerator = OlapStructureGenerator(path_to_folder)
     frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(from_frontend)
-    olap_service: OlapService = OlapService()
+    olap_select_builder = OlapPostgresSelectBuilder()
+    olap_service: OlapService = OlapService(olap_select_builder)
     return frontend_to_backend_type, olap_service, olap_structure_generator
 
 
