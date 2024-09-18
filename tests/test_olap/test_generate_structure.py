@@ -35,16 +35,30 @@ def test_should_be_only_base_table_no_group_by() -> None:
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, BASE_TABLE_NAME)
 
     assert len(select_list) == 2
+    assert 'base_sales.year_f as "year"' in select_list
+    assert 'base_sales.pcs_f as "pcs"' in select_list
     assert len(select_for_group_by) == 0
     assert len(joins) == 0
     assert len(where) == 0
     assert len(select_for_group_by) == 0
     assert has_calculation is False
 
-    print(olap_service.generate_select_query(select_list, select_for_group_by, joins, where, has_calculation, BASE_TABLE_NAME, 0))
+
+def test_should_be_only_base_table_with_group_by():
+    # Поля, которые есть только в базовой таблице без group by
+    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_join_no_where)
+
+    # Should be only main field left
+    short_table_only_base: ShortTablesCollectionForSelect \
+        = olap_service.generate_pre_select_collection(frontend_to_backend_type,
+                                                      olap_structure_generator.get_tables_collection())
+
+    select_list, select_for_group_by, joins, where, has_calculation \
+        = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, BASE_TABLE_NAME)
 
     assert 1 == 1
 
 
 if __name__ == "__main__":
-    test_should_be_only_base_table_no_group_by()
+    # test_should_be_only_base_table_no_group_by()
+    test_should_be_only_base_table_with_group_by()

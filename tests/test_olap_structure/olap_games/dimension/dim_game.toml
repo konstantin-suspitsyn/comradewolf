@@ -3,6 +3,6 @@ schema = "games_olap"
 database = "olap_test"
 
 [fields]
-sk_id_game = {field_type = "service_key", alias = "sk_id_game", front_name="none"}
-bk_game_id = {field_type = "dimension", alias = "bk_id_game", front_name="Game Id", use_sk_for_count="True"}
-game_name = {field_type = "dimension", alias = "game_name", front_name="Game Name", use_sk_for_count="True"}
+sk_id_game_f = {field_type = "service_key", alias = "sk_id_game", front_name="none"}
+bk_game_id_f = {field_type = "dimension", alias = "bk_id_game", front_name="Game Id", use_sk_for_count="True"}
+game_name_f = {field_type = "dimension", alias = "game_name", front_name="Game Name", use_sk_for_count="True"}
