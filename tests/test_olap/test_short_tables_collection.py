@@ -62,8 +62,8 @@ def test_should_be_only_base_table_no_group_by() -> None:
 
     fields = gather_dict_data(short_table_only_base.get_selects(BASE_TABLE_NAME))
 
-    assert "year" in fields
-    assert "pcs" in fields
+    assert "year_f" in fields
+    assert "pcs_f" in fields
 
 
 def test_should_be_only_base_table_with_group_by():
@@ -88,7 +88,7 @@ def test_should_be_only_base_table_with_group_by():
     join_tables = short_table_only_base.get_join_select(BASE_TABLE_NAME)
     assert len(join_tables) == 1
     assert "olap_test.games_olap.dim_game" in join_tables
-    assert "bk_game_id" in gather_dict_data(join_tables["olap_test.games_olap.dim_game"]["fields"])
+    assert "bk_game_id_f" in gather_dict_data(join_tables["olap_test.games_olap.dim_game"]["fields"])
 
     assert len(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME)) == 3
     assert len(short_table_only_base.get_join_where(BASE_TABLE_NAME)) == 0
@@ -113,10 +113,10 @@ def test_base_table_wth_gb_agg_no_gb():
     fields_g_by_y_m = gather_dict_data(short_table_only_base.get_selects(G_BY_Y_YM_TABLE_NAME))
 
     assert len(fields_g_by_y_m) == 4
-    assert "year" in fields_g_by_y_m
-    assert "yearmonth" in fields_g_by_y_m
-    assert "avg_price" in fields_g_by_y_m
-    assert "sum_pcs" in fields_g_by_y_m
+    assert "year_f" in fields_g_by_y_m
+    assert "yearmonth_f" in fields_g_by_y_m
+    assert "avg_price_f" in fields_g_by_y_m
+    assert "sum_pcs_f" in fields_g_by_y_m
 
     assert len(short_table_only_base.get_aggregations_without_join(G_BY_Y_YM_TABLE_NAME)) == 0
     assert len(short_table_only_base.get_join_select(G_BY_Y_YM_TABLE_NAME)) == 0
@@ -130,16 +130,16 @@ def test_base_table_wth_gb_agg_no_gb():
 
     fields_base_table = gather_dict_data(short_table_only_base.get_selects(BASE_TABLE_NAME))
     assert len(fields_base_table) == 2
-    assert "year" in fields_base_table
-    assert "yearmonth" in fields_base_table
+    assert "year_f" in fields_base_table
+    assert "yearmonth_f" in fields_base_table
 
     assert len(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME)) == 2
 
     aggregation_base_table = gather_dict_data(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME))
 
     assert len(aggregation_base_table) == 2
-    assert "price" in aggregation_base_table
-    assert "pcs" in aggregation_base_table
+    assert "price_f" in aggregation_base_table
+    assert "pcs_f" in aggregation_base_table
 
     assert len(short_table_only_base.get_join_select(BASE_TABLE_NAME)) == 0
     assert len(short_table_only_base.get_aggregation_joins(BASE_TABLE_NAME)) == 0
@@ -165,15 +165,15 @@ def test_base_agg_wth_agg():
 
     fields_base_table = gather_dict_data(short_table_only_base.get_selects(BASE_TABLE_NAME))
     assert len(fields_base_table) == 1
-    assert "year" in fields_base_table
+    assert "year_f" in fields_base_table
 
     assert len(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME)) == 2
 
     aggregation_base_table = gather_dict_data(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME))
 
     assert len(aggregation_base_table) == 2
-    assert "sales_rub" in aggregation_base_table
-    assert "pcs" in aggregation_base_table
+    assert "sales_rub_f" in aggregation_base_table
+    assert "pcs_f" in aggregation_base_table
 
     assert len(short_table_only_base.get_join_select(BASE_TABLE_NAME)) == 0
     assert len(short_table_only_base.get_aggregation_joins(BASE_TABLE_NAME)) == 0
@@ -186,7 +186,7 @@ def test_base_agg_wth_agg():
 
     fields_g_by_y_ym_table = gather_dict_data(short_table_only_base.get_selects(G_BY_Y_YM_TABLE_NAME))
     assert len(fields_g_by_y_ym_table) == 1
-    assert "year" in fields_g_by_y_ym_table
+    assert "year_f" in fields_g_by_y_ym_table
 
     assert len(short_table_only_base.get_aggregations_without_join(G_BY_Y_YM_TABLE_NAME)) == 2
 
@@ -194,8 +194,8 @@ def test_base_agg_wth_agg():
         G_BY_Y_YM_TABLE_NAME))
 
     assert len(aggregation_g_by_y_ym_table) == 2
-    assert "sum_sales_rub" in aggregation_g_by_y_ym_table
-    assert "sum_pcs" in aggregation_g_by_y_ym_table
+    assert "sum_sales_rub_f" in aggregation_g_by_y_ym_table
+    assert "sum_pcs_f" in aggregation_g_by_y_ym_table
 
     assert len(short_table_only_base.get_join_select(G_BY_Y_YM_TABLE_NAME)) == 0
     assert len(short_table_only_base.get_aggregation_joins(G_BY_Y_YM_TABLE_NAME)) == 0
@@ -208,9 +208,9 @@ def test_base_agg_wth_agg():
 
     fields_g_by_y_table = gather_dict_data(short_table_only_base.get_selects(G_BY_Y_TABLE_NAME))
     assert len(fields_g_by_y_table) == 3
-    assert "year" in fields_g_by_y_table
-    assert "sum_sales_rub" in fields_g_by_y_table
-    assert "sum_pcs" in fields_g_by_y_table
+    assert "year_f" in fields_g_by_y_table
+    assert "sum_sales_rub_f" in fields_g_by_y_table
+    assert "sum_pcs_f" in fields_g_by_y_table
 
     assert len(short_table_only_base.get_aggregations_without_join(G_BY_Y_TABLE_NAME)) == 0
 
@@ -225,15 +225,15 @@ def test_base_agg_wth_agg():
 
     fields_g_by_y_ym_p_table = gather_dict_data(short_table_only_base.get_selects(G_BY_Y_YM_P_TABLE_NAME))
     assert len(fields_g_by_y_ym_p_table) == 1
-    assert "year" in fields_g_by_y_ym_p_table
+    assert "year_f" in fields_g_by_y_ym_p_table
     assert len(short_table_only_base.get_aggregations_without_join(G_BY_Y_YM_P_TABLE_NAME)) == 2
 
     aggregation_g_by_y_ym_p_table = gather_dict_data(short_table_only_base.get_aggregations_without_join(
         G_BY_Y_YM_P_TABLE_NAME))
 
     assert len(aggregation_g_by_y_ym_p_table) == 2
-    assert "sum_sales_rub" in aggregation_g_by_y_ym_p_table
-    assert "sum_pcs" in aggregation_g_by_y_ym_p_table
+    assert "sum_sales_rub_f" in aggregation_g_by_y_ym_p_table
+    assert "sum_pcs_f" in aggregation_g_by_y_ym_p_table
 
     assert len(short_table_only_base.get_join_select(G_BY_Y_YM_P_TABLE_NAME)) == 0
     assert len(short_table_only_base.get_aggregation_joins(G_BY_Y_YM_P_TABLE_NAME)) == 0
@@ -246,15 +246,15 @@ def test_base_agg_wth_agg():
 
     fields_g_by_y_p_table = gather_dict_data(short_table_only_base.get_selects(G_BY_Y_P_TABLE_NAME))
     assert len(fields_g_by_y_p_table) == 1
-    assert "year" in fields_g_by_y_p_table
+    assert "year_f" in fields_g_by_y_p_table
     assert len(short_table_only_base.get_aggregations_without_join(G_BY_Y_P_TABLE_NAME)) == 2
 
     aggregation_g_by_y_p_table = gather_dict_data(short_table_only_base.get_aggregations_without_join(
         G_BY_Y_P_TABLE_NAME))
 
     assert len(aggregation_g_by_y_p_table) == 2
-    assert "sum_sales_rub" in aggregation_g_by_y_p_table
-    assert "sum_pcs" in aggregation_g_by_y_p_table
+    assert "sum_sales_rub_f" in aggregation_g_by_y_p_table
+    assert "sum_pcs_f" in aggregation_g_by_y_p_table
 
     assert len(short_table_only_base.get_join_select(G_BY_Y_P_TABLE_NAME)) == 0
     assert len(short_table_only_base.get_aggregation_joins(G_BY_Y_P_TABLE_NAME)) == 0
@@ -317,8 +317,8 @@ def test_should_be_only_base_table_no_group_by_join():
 
     fields = gather_dict_data(short_table_only_base.get_selects(BASE_TABLE_NAME))
 
-    assert "year" in fields
-    assert "pcs" in fields
+    assert "year_f" in fields
+    assert "pcs_f" in fields
 
     assert len(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME)) == 0
 
@@ -328,9 +328,9 @@ def test_should_be_only_base_table_no_group_by_join():
     assert DIM_PUBLISHER in js
     assert DIM_GAMES in js
 
-    assert "publisher_name_field" == js[DIM_PUBLISHER]["fields"][0]["backend_field"]
-    assert "id" == js[DIM_PUBLISHER]["service_key_dimension_table"]
-    assert "sk_id_publisher" == js[DIM_PUBLISHER]["service_key_fact_table"]
+    assert "publisher_name_field_f" == js[DIM_PUBLISHER]["fields"][0]["backend_field"]
+    assert "id_f" == js[DIM_PUBLISHER]["service_key_dimension_table"]
+    assert "sk_id_publisher_f" == js[DIM_PUBLISHER]["service_key_fact_table"]
 
     assert len(short_table_only_base.get_aggregation_joins(BASE_TABLE_NAME)) == 0
     assert len(short_table_only_base.get_join_where(BASE_TABLE_NAME)) == 0
@@ -354,14 +354,14 @@ def test_base_table_wth_gb_agg_no_gb_join():
     # BASE_TABLE_NAME
     assert len(short_table_only_base.get_selects(BASE_TABLE_NAME)) == 1
     fields_base_table = gather_dict_data(short_table_only_base.get_selects(BASE_TABLE_NAME))
-    assert "year" in fields_base_table
+    assert "year_f" in fields_base_table
     assert len(short_table_only_base.get_join_select(BASE_TABLE_NAME)) == 1
     assert DIM_PUBLISHER in short_table_only_base.get_join_select(BASE_TABLE_NAME)
 
     fields_base_publisher = gather_dict_data(short_table_only_base
                                              .get_join_select(BASE_TABLE_NAME)[DIM_PUBLISHER]["fields"])
 
-    assert "publisher_name_field" in fields_base_publisher
+    assert "publisher_name_field_f" in fields_base_publisher
 
     assert len(short_table_only_base.get_self_where(BASE_TABLE_NAME)) == 0
     assert len(short_table_only_base.get_aggregation_joins(BASE_TABLE_NAME)) == 0
@@ -369,24 +369,24 @@ def test_base_table_wth_gb_agg_no_gb_join():
     assert len(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME)) == 2
 
     agg_fields_base = gather_dict_data(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME))
-    assert "sales_rub" in agg_fields_base
-    assert "pcs" in agg_fields_base
+    assert "sales_rub_f" in agg_fields_base
+    assert "pcs_f" in agg_fields_base
 
     assert len(short_table_only_base.get_all_selects(BASE_TABLE_NAME)) == 10
 
     # G_BY_Y_P_TABLE_NAME
     assert len(short_table_only_base.get_selects(G_BY_Y_P_TABLE_NAME)) == 3
     fields_g_by_y_p_table = gather_dict_data(short_table_only_base.get_selects(G_BY_Y_P_TABLE_NAME))
-    assert "year" in fields_g_by_y_p_table
-    assert "sum_pcs" in fields_g_by_y_p_table
-    assert "sum_sales_rub" in fields_g_by_y_p_table
+    assert "year_f" in fields_g_by_y_p_table
+    assert "sum_pcs_f" in fields_g_by_y_p_table
+    assert "sum_sales_rub_f" in fields_g_by_y_p_table
     assert len(short_table_only_base.get_join_select(G_BY_Y_P_TABLE_NAME)) == 1
     assert DIM_PUBLISHER in short_table_only_base.get_join_select(G_BY_Y_P_TABLE_NAME)
 
     fields_base_g_p_y_publisher = gather_dict_data(short_table_only_base
                                                    .get_join_select(G_BY_Y_P_TABLE_NAME)[DIM_PUBLISHER]["fields"])
 
-    assert "publisher_name_field" in fields_base_g_p_y_publisher
+    assert "publisher_name_field_f" in fields_base_g_p_y_publisher
 
     assert len(short_table_only_base.get_self_where(G_BY_Y_P_TABLE_NAME)) == 0
     assert len(short_table_only_base.get_aggregation_joins(G_BY_Y_P_TABLE_NAME)) == 0
@@ -398,14 +398,14 @@ def test_base_table_wth_gb_agg_no_gb_join():
 
     assert len(short_table_only_base.get_selects(G_BY_Y_YM_P_TABLE_NAME)) == 1
     fields_base_table_ym = gather_dict_data(short_table_only_base.get_selects(G_BY_Y_YM_P_TABLE_NAME))
-    assert "year" in fields_base_table_ym
+    assert "year_f" in fields_base_table_ym
     assert len(short_table_only_base.get_join_select(G_BY_Y_YM_P_TABLE_NAME)) == 1
     assert DIM_PUBLISHER in short_table_only_base.get_join_select(G_BY_Y_YM_P_TABLE_NAME)
 
     fields_base_publisher_ym = gather_dict_data(short_table_only_base
                                                 .get_join_select(G_BY_Y_YM_P_TABLE_NAME)[DIM_PUBLISHER]["fields"])
 
-    assert "publisher_name_field" in fields_base_publisher_ym
+    assert "publisher_name_field_f" in fields_base_publisher_ym
 
     assert len(short_table_only_base.get_self_where(G_BY_Y_YM_P_TABLE_NAME)) == 0
     assert len(short_table_only_base.get_aggregation_joins(G_BY_Y_YM_P_TABLE_NAME)) == 0
@@ -413,8 +413,8 @@ def test_base_table_wth_gb_agg_no_gb_join():
     assert len(short_table_only_base.get_aggregations_without_join(G_BY_Y_YM_P_TABLE_NAME)) == 2
 
     agg_fields_base = gather_dict_data(short_table_only_base.get_aggregations_without_join(G_BY_Y_YM_P_TABLE_NAME))
-    assert "sum_pcs" in agg_fields_base
-    assert "sum_sales_rub" in agg_fields_base
+    assert "sum_pcs_f" in agg_fields_base
+    assert "sum_sales_rub_f" in agg_fields_base
 
     assert len(short_table_only_base.get_all_selects(G_BY_Y_YM_P_TABLE_NAME)) == 1
 
@@ -438,7 +438,7 @@ def test_agg_table_wth_join_with_agg():
     # BASE_TABLE_NAME
     assert len(short_table_only_base.get_selects(BASE_TABLE_NAME)) == 1
     fields_base_table = gather_dict_data(short_table_only_base.get_selects(BASE_TABLE_NAME))
-    assert "year" in fields_base_table
+    assert "year_f" in fields_base_table
     assert len(short_table_only_base.get_join_select(BASE_TABLE_NAME)) == 0
     assert len(short_table_only_base.get_self_where(BASE_TABLE_NAME)) == 0
     assert len(short_table_only_base.get_aggregation_joins(BASE_TABLE_NAME)) == 1
@@ -446,20 +446,20 @@ def test_agg_table_wth_join_with_agg():
     fields_base_publisher = gather_dict_data(short_table_only_base
                                              .get_aggregation_joins(BASE_TABLE_NAME)[DIM_PUBLISHER]["fields"])
 
-    assert "publisher_name_field" in fields_base_publisher
+    assert "publisher_name_field_f" in fields_base_publisher
     assert len(short_table_only_base.get_join_where(BASE_TABLE_NAME)) == 0
     assert len(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME)) == 2
 
     agg_fields_base = gather_dict_data(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME))
-    assert "sales_rub" in agg_fields_base
-    assert "pcs" in agg_fields_base
+    assert "sales_rub_f" in agg_fields_base
+    assert "pcs_f" in agg_fields_base
 
     assert len(short_table_only_base.get_all_selects(BASE_TABLE_NAME)) == 11
 
     # G_BY_Y_P_TABLE_NAME
     assert len(short_table_only_base.get_selects(G_BY_Y_P_TABLE_NAME)) == 1
     fields_g_by_y_p_table = gather_dict_data(short_table_only_base.get_selects(G_BY_Y_P_TABLE_NAME))
-    assert "year" in fields_g_by_y_p_table
+    assert "year_f" in fields_g_by_y_p_table
     assert len(short_table_only_base.get_join_select(G_BY_Y_P_TABLE_NAME)) == 0
     assert len(short_table_only_base.get_self_where(G_BY_Y_P_TABLE_NAME)) == 0
     assert len(short_table_only_base.get_aggregation_joins(G_BY_Y_P_TABLE_NAME)) == 1
@@ -471,8 +471,8 @@ def test_agg_table_wth_join_with_agg():
 
     agg_g_by_y_p = gather_dict_data(short_table_only_base.get_aggregations_without_join(G_BY_Y_P_TABLE_NAME))
 
-    assert "sum_pcs" in agg_g_by_y_p
-    assert "sum_sales_rub" in agg_g_by_y_p
+    assert "sum_pcs_f" in agg_g_by_y_p
+    assert "sum_sales_rub_f" in agg_g_by_y_p
 
     assert len(short_table_only_base.get_all_selects(G_BY_Y_P_TABLE_NAME)) == 1
     assert "sk_id_publisher" in short_table_only_base.get_all_selects(G_BY_Y_P_TABLE_NAME)
@@ -481,7 +481,7 @@ def test_agg_table_wth_join_with_agg():
 
     assert len(short_table_only_base.get_selects(G_BY_Y_YM_P_TABLE_NAME)) == 1
     fields_base_table_ym = gather_dict_data(short_table_only_base.get_selects(G_BY_Y_YM_P_TABLE_NAME))
-    assert "year" in fields_base_table_ym
+    assert "year_f" in fields_base_table_ym
     assert len(short_table_only_base.get_join_select(G_BY_Y_YM_P_TABLE_NAME)) == 0
 
     assert len(short_table_only_base.get_self_where(G_BY_Y_YM_P_TABLE_NAME)) == 0
@@ -492,14 +492,14 @@ def test_agg_table_wth_join_with_agg():
     fields_base_publisher_ym = gather_dict_data(short_table_only_base
                                                 .get_aggregation_joins(G_BY_Y_YM_P_TABLE_NAME)[DIM_PUBLISHER]["fields"])
 
-    assert "publisher_name_field" in fields_base_publisher_ym
+    assert "publisher_name_field_f" in fields_base_publisher_ym
 
     assert len(short_table_only_base.get_join_where(G_BY_Y_YM_P_TABLE_NAME)) == 0
     assert len(short_table_only_base.get_aggregations_without_join(G_BY_Y_YM_P_TABLE_NAME)) == 2
 
     agg_fields_base = gather_dict_data(short_table_only_base.get_aggregations_without_join(G_BY_Y_YM_P_TABLE_NAME))
-    assert "sum_pcs" in agg_fields_base
-    assert "sum_sales_rub" in agg_fields_base
+    assert "sum_pcs_f" in agg_fields_base
+    assert "sum_sales_rub_f" in agg_fields_base
 
     assert len(short_table_only_base.get_all_selects(G_BY_Y_YM_P_TABLE_NAME)) == 2
 
@@ -517,8 +517,8 @@ def test_service_key_count():
 
     assert len(short_table_only_base.get_selects(BASE_TABLE_NAME)) == 2
     fields_base_table = gather_dict_data(short_table_only_base.get_selects(BASE_TABLE_NAME))
-    assert "year" in fields_base_table
-    assert "english" in fields_base_table
+    assert "year_f" in fields_base_table
+    assert "english_f" in fields_base_table
     assert len(short_table_only_base.get_join_select(BASE_TABLE_NAME)) == 0
     assert len(short_table_only_base.get_self_where(BASE_TABLE_NAME)) == 0
     assert len(short_table_only_base.get_aggregation_joins(BASE_TABLE_NAME)) == 0
@@ -526,7 +526,7 @@ def test_service_key_count():
     assert len(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME)) == 1
 
     agg_fields_base = gather_dict_data(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME))
-    assert "sk_id_game" in agg_fields_base
+    assert "sk_id_game_f" in agg_fields_base
 
     assert len(short_table_only_base.get_all_selects(BASE_TABLE_NAME)) == 10
 
@@ -546,7 +546,7 @@ def test_where_in_base_table():
 
     assert len(short_table_only_base.get_self_where(BASE_TABLE_NAME)) == 2
 
-    assert "price" in short_table_only_base.get_self_where(BASE_TABLE_NAME)
+    assert "price_f" in short_table_only_base.get_self_where(BASE_TABLE_NAME)
     assert "release_date_f" in short_table_only_base.get_self_where(BASE_TABLE_NAME)
 
     assert len(short_table_only_base.get_aggregation_joins(BASE_TABLE_NAME)) == 0
@@ -556,8 +556,8 @@ def test_where_in_base_table():
 
     fields = gather_dict_data(short_table_only_base.get_selects(BASE_TABLE_NAME))
 
-    assert "year" in fields
-    assert "pcs" in fields
+    assert "year_f" in fields
+    assert "pcs_f" in fields
 
 
 def test_where_in_join():
@@ -575,7 +575,7 @@ def test_where_in_join():
 
     assert len(short_table_only_base.get_self_where(BASE_TABLE_NAME)) == 2
 
-    assert "price" in short_table_only_base.get_self_where(BASE_TABLE_NAME)
+    assert "price_f" in short_table_only_base.get_self_where(BASE_TABLE_NAME)
     assert "release_date_f" in short_table_only_base.get_self_where(BASE_TABLE_NAME)
 
     assert len(short_table_only_base.get_aggregation_joins(BASE_TABLE_NAME)) == 0
@@ -587,8 +587,8 @@ def test_where_in_join():
 
     fields = gather_dict_data(short_table_only_base.get_selects(BASE_TABLE_NAME))
 
-    assert "year" in fields
-    assert "pcs" in fields
+    assert "year_f" in fields
+    assert "pcs_f" in fields
 
     assert 1 == 1
 
@@ -609,7 +609,7 @@ def test_where_with_agg_in_base_table():
 
     assert len(short_table_only_base.get_self_where(BASE_TABLE_NAME)) == 2
 
-    assert "price" in short_table_only_base.get_self_where(BASE_TABLE_NAME)
+    assert "price_f" in short_table_only_base.get_self_where(BASE_TABLE_NAME)
     assert "release_date_f" in short_table_only_base.get_self_where(BASE_TABLE_NAME)
 
     assert len(short_table_only_base.get_aggregation_joins(BASE_TABLE_NAME)) == 0
@@ -619,8 +619,8 @@ def test_where_with_agg_in_base_table():
 
     fields = gather_dict_data(short_table_only_base.get_selects(BASE_TABLE_NAME))
 
-    assert "year" in fields
-    assert "pcs" in fields
+    assert "year_f" in fields
+    assert "pcs_f" in fields
 
     assert 1 == 1
 
@@ -643,7 +643,7 @@ def test_where_with_agg_in_join():
     assert len(short_table_only_base.get_self_where(BASE_TABLE_NAME)) == 2
     assert len(short_table_only_base.get_aggregation_joins(BASE_TABLE_NAME)) == 0
 
-    assert "price" in short_table_only_base.get_self_where(BASE_TABLE_NAME)
+    assert "price_f" in short_table_only_base.get_self_where(BASE_TABLE_NAME)
     assert "release_date_f" in short_table_only_base.get_self_where(BASE_TABLE_NAME)
 
     assert len(short_table_only_base.get_join_select(BASE_TABLE_NAME)) == 1
@@ -651,7 +651,7 @@ def test_where_with_agg_in_join():
     join_tables = short_table_only_base.get_join_select(BASE_TABLE_NAME)
     assert len(join_tables) == 1
     assert "olap_test.games_olap.dim_game" in join_tables
-    assert "bk_game_id" in gather_dict_data(join_tables["olap_test.games_olap.dim_game"]["fields"])
+    assert "bk_game_id_f" in gather_dict_data(join_tables["olap_test.games_olap.dim_game"]["fields"])
 
     assert len(short_table_only_base.get_aggregations_without_join(BASE_TABLE_NAME)) == 3
     assert len(short_table_only_base.get_join_where(BASE_TABLE_NAME)) == 1

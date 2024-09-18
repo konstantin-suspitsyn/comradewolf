@@ -12,12 +12,6 @@ MANY_DIMENSION_TABLES_ERR = ("Two or more dimension tables are without fact tabl
 
 FIELD_NAME_WITH_ALIAS = '{} as "{}"'
 
-SELECT = "SELECT"
-WHERE = "WHERE"
-GROUP_BY = "GROUP BY"
-INNER_JOIN = "INNER_JOIN"
-FROM = "FROM"
-
 
 class OlapService:
     """
@@ -173,7 +167,6 @@ class OlapService:
 
         # Field was not yet calculated
         if has_ready_calculation is False:
-
             field_name_alias_with_calc = tables_collection.get_backend_field_name(table_name, current_field_name)
 
             short_tables_collection.add_aggregation_field(table_name, current_calculation,
@@ -187,7 +180,6 @@ class OlapService:
         # Field was calculated
         if has_ready_calculation:
             if len(short_tables_collection[table_name]["all_selects"]) == 0:
-
                 alias_backend_name = create_field_with_calculation(current_field_name, current_calculation)
 
                 backend_name: str = tables_collection.get_backend_field_name(table_name, alias_backend_name)
@@ -313,7 +305,7 @@ class OlapService:
                                              join_table_name=join_table_name,
                                              condition=front_field_dict,
                                              service_key_dimension_table=service_key_dimension_table,
-                                             service_key_fact_table=service_key_fact_table,)
+                                             service_key_fact_table=service_key_fact_table, )
 
         for delete_table in tables_to_delete_from_short_collection:
             del table_collection_with_select[delete_table]
@@ -403,7 +395,7 @@ class OlapService:
         :return: select statement
         """
         return self.olap_select_builder.generate_select_query(select_list, select_for_group_by, joins, where,
-                                                              has_calculation, table_name,not_selected_fields_no)
+                                                              has_calculation, table_name, not_selected_fields_no)
 
     @staticmethod
     def has_fact_table_fields(frontend_fields: OlapFrontendToBackend, tables_collection: OlapTablesCollection) -> bool:
