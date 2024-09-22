@@ -104,6 +104,7 @@ class OlapService:
                 add_sk_field: bool = False
 
                 if dimension_fields is not None:
+
                     # Service key not in table
                     if tables_collection.is_field_in_data_table(sk, table, None) \
                             is False:
@@ -126,9 +127,14 @@ class OlapService:
                     continue
 
                 if (not can_use_sk) & (dimension_fields is not None):
+                    # TODO: это новое, все проверить. Где и что
+                    backend_service_key_fact: str = tables_collection.get_backend_field_name(table, sk)
+                    backend_service_key_dimension: str = tables_collection.get_backend_field_name(dimension_table, sk)
+
                     short_tables_collection, add_dimension = \
                         self.add_join_calculation(current_field_name, current_calculation, table, dimension_table,
-                                                  sk, short_tables_collection, tables_collection)
+                                                  sk, backend_service_key_dimension, backend_service_key_fact,
+                                                  short_tables_collection, tables_collection)
 
                 if add_dimension:
                     continue
@@ -314,7 +320,8 @@ class OlapService:
 
     @staticmethod
     def add_join_calculation(current_field_name: str, current_calculation: str, table_name: str, join_table: str,
-                             service_key: str, short_tables_collection: ShortTablesCollectionForSelect,
+                             service_key: str, service_key_dimension: str, service_key_fact: str,
+                             short_tables_collection: ShortTablesCollectionForSelect,
                              table_collection: OlapTablesCollection) -> tuple[ShortTablesCollectionForSelect, bool]:
         """
         Adds calculation with join if possible
@@ -331,7 +338,8 @@ class OlapService:
         backend_field = table_collection.get_backend_field_name(join_table, current_field_name)
 
         short_tables_collection.add_join_field_for_aggregation(table_name, current_field_name, current_calculation,
-                                                               join_table, service_key, backend_field)
+                                                               join_table, service_key, service_key_dimension,
+                                                               service_key_fact, backend_field)
 
         return short_tables_collection, True
 
