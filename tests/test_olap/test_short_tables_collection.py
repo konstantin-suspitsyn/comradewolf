@@ -267,7 +267,6 @@ def test_one_value_in_aggregate():
     # Только одно поле value в агрегат
     frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(one_agg_value)
 
-    # Should be only main field left
     short_table_only_base: ShortTablesCollectionForSelect \
         = olap_service.generate_pre_select_collection(frontend_to_backend_type,
                                                       olap_structure_generator.get_tables_collection())
@@ -454,7 +453,7 @@ def test_agg_table_wth_join_with_agg():
     assert "sales_rub_f" in agg_fields_base
     assert "pcs_f" in agg_fields_base
 
-    assert len(short_table_only_base.get_all_selects(BASE_TABLE_NAME)) == 11
+    assert len(short_table_only_base.get_all_selects(BASE_TABLE_NAME)) == 10
 
     # G_BY_Y_P_TABLE_NAME
     assert len(short_table_only_base.get_selects(G_BY_Y_P_TABLE_NAME)) == 1
@@ -474,8 +473,7 @@ def test_agg_table_wth_join_with_agg():
     assert "sum_pcs_f" in agg_g_by_y_p
     assert "sum_sales_rub_f" in agg_g_by_y_p
 
-    assert len(short_table_only_base.get_all_selects(G_BY_Y_P_TABLE_NAME)) == 1
-    assert "sk_id_publisher" in short_table_only_base.get_all_selects(G_BY_Y_P_TABLE_NAME)
+    assert len(short_table_only_base.get_all_selects(G_BY_Y_P_TABLE_NAME)) == 0
 
     # # G_BY_Y_YM_P_TABLE_NAME
 
@@ -501,7 +499,7 @@ def test_agg_table_wth_join_with_agg():
     assert "sum_pcs_f" in agg_fields_base
     assert "sum_sales_rub_f" in agg_fields_base
 
-    assert len(short_table_only_base.get_all_selects(G_BY_Y_YM_P_TABLE_NAME)) == 2
+    assert len(short_table_only_base.get_all_selects(G_BY_Y_YM_P_TABLE_NAME)) == 1
 
 
 def test_service_key_count():

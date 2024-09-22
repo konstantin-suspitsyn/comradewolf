@@ -147,7 +147,8 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
                 frontend_name: str = join_field["frontend_field"]
 
                 select_list.append(f"{backend_name} as {frontend_name}")
-                select_for_group_by.append(backend_name)
+                if (len(aggregation_structure) > 0) or (len(aggregation_join) > 0):
+                    select_for_group_by.append(backend_name)
 
             if join_table_name not in joins:
                 joins[join_table_name] = service_join
@@ -156,8 +157,8 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
 
         for join_table_name in aggregation_join:
             short_join_table_name: str = join_table_name.split(".")[-1]
-            dimension_service_key: str = select_join[join_table_name]["service_key_dimension_table"]
-            fact_service_key: str = select_join[join_table_name]["service_key_fact_table"]
+            dimension_service_key: str = aggregation_join[join_table_name]["service_key_dimension_table"]
+            fact_service_key: str = aggregation_join[join_table_name]["service_key_fact_table"]
 
             service_join: str = "ON {}.{} = {}.{}".format(short_table_name, fact_service_key,
                                                           short_join_table_name,

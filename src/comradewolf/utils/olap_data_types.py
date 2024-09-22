@@ -319,10 +319,6 @@ class OlapTablesCollection(UserDict):
                 if field == field_alias_name:
                     has_field = True
 
-                # if dimension_table["fields"][field]["field_type"] == OlapFieldTypes.SERVICE_KEY.value:
-                #     service_key_name = field
-                #     has_service_key = True
-
                 if has_field:
                     dimension_table_for_return: list = [table_name, service_key_name]
 
@@ -715,12 +711,13 @@ class ShortTablesCollectionForSelect(UserDict):
         self.data[table_name]["self_where"][backend_field_name].append(condition)
 
     def add_join_field_for_aggregation(self, table_name: str, field_name_alias: str, current_calculation: str,
-                                       join_table_name: str, service_key: str, backend_field: str) \
-            -> None:
+                                       join_table_name: str, service_key_alias: str, service_key_dimension_table: str,
+                                       service_key_fact_table: str, backend_field: str) -> None:
 
         if table_name not in self.data[table_name]["aggregation_joins"]:
             self.data[table_name]["aggregation_joins"][join_table_name] = {
-                "service_key": service_key,
+                "service_key_fact_table": service_key_fact_table,
+                "service_key_dimension_table": service_key_dimension_table,
                 "fields": [],
             }
 
@@ -731,6 +728,8 @@ class ShortTablesCollectionForSelect(UserDict):
                 "backend_alias": field_name_alias,
                 "backend_calculation": current_calculation,
             })
+
+            self.__remove_select_field(table_name, service_key_alias)
 
     def get_all_selects(self, table_name) -> list:
         """
