@@ -111,6 +111,7 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
         for field in selects_inner_structure:
             backend_name: str = "{}.{}".format(short_table_name, field["backend_field"])
             frontend_name: str = field["frontend_field"]
+
             select_list.append(FIELD_NAME_WITH_ALIAS.format(backend_name, frontend_name))
 
             if (len(aggregation_structure) > 0) or (len(aggregation_join) > 0):
@@ -122,6 +123,8 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
             backend_name: str = "{}({}.{})".format(field["backend_calculation"], short_table_name,
                                                    field["backend_field"])
             frontend_name: str = field["frontend_field"]
+            if field["frontend_calculation"] is not None:
+                frontend_name = create_field_with_calculation(frontend_name, field["frontend_calculation"])
 
             has_calculation = True
 
