@@ -192,8 +192,8 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
         for join_table_name in join_where:
             short_join_table_name: str = join_table_name.split(".")[-1]
 
-            dimension_service_key: str = select_join[join_table_name]["service_key_dimension_table"]
-            fact_service_key: str = select_join[join_table_name]["service_key_fact_table"]
+            dimension_service_key: str = join_where[join_table_name]["service_key_dimension_table"]
+            fact_service_key: str = join_where[join_table_name]["service_key_fact_table"]
 
             service_join: str = "ON {}.{} = {}.{}".format(short_table_name, fact_service_key,
                                                           short_join_table_name,
