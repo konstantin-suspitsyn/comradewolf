@@ -373,24 +373,205 @@ def test_agg_table_wth_join_with_agg():
     select_list, select_for_group_by, joins, where, has_calculation \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, BASE_TABLE_NAME)
 
-    # assert len(select_list) == 4
-    #
-    # for item in ['base_sales.year_f as "year"', 'sum(base_sales.sales_rub_f) as "sales_rub__sum"',
-    #              'sum(base_sales.pcs_f) as "pcs__sum"', 'dim_publisher.publisher_name_field_f as publisher_name']:
-    #     assert item in select_list
-    #
-    # assert len(select_for_group_by) == 2
-    #
-    # assert has_calculation is True
-    # assert len(joins) == 1
-    #
-    # assert {'olap_test.games_olap.dim_publisher': 'ON base_sales.sk_id_publisher_f = dim_publisher.id_f'} == joins
-    #
-    # assert len(where) == 0
+    assert len(select_list) == 4
+
+    for item in ['base_sales.year_f as "year"', 'sum(base_sales.sales_rub_f) as "sales_rub__sum"',
+                 'sum(base_sales.pcs_f) as "pcs__sum"',
+                 'count(dim_publisher.publisher_name_field_f) as publisher_name__count']:
+        assert item in select_list
+
+    assert len(select_for_group_by) == 1
+
+    assert has_calculation is True
+    assert len(joins) == 1
+
+    assert {'olap_test.games_olap.dim_publisher': 'ON base_sales.sk_id_publisher_f = dim_publisher.id_f'} == joins
+
+    assert len(where) == 0
 
     # G_BY_Y_P_TABLE_NAME
 
+    select_list_y_p, select_for_group_by_y_p, joins_g_y_p, where_g_y_p, has_calculation_g_y_p \
+        = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, G_BY_Y_P_TABLE_NAME)
+
+    assert len(select_list_y_p) == 4
+
+    for item in ['g_by_y_p.year_f as "year"', 'sum(g_by_y_p.sum_sales_rub_f) as "sales_rub__sum"',
+                 'sum(g_by_y_p.sum_pcs_f) as "pcs__sum"',
+                 'count(dim_publisher.publisher_name_field_f) as publisher_name__count']:
+        assert item in select_list_y_p
+
+    assert len(select_for_group_by_y_p) == 1
+
+    assert has_calculation_g_y_p is True
+    assert len(joins_g_y_p) == 1
+
+    assert {'olap_test.games_olap.dim_publisher': 'ON g_by_y_p.sk_id_publisher_f = dim_publisher.id_f'} == joins_g_y_p
+
+    assert len(where_g_y_p) == 0
+
     # G_BY_Y_YM_P_TABLE_NAME
+
+    select_list_y_ym_p, select_for_group_by_y_ym_p, joins_g_y_ym_p, where_g_y_ym_p, has_calculation_g_y_ym_p \
+        = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, G_BY_Y_YM_P_TABLE_NAME)
+
+    assert len(select_list_y_ym_p) == 4
+
+    for item in ['g_by_y_ym_p.year_f as "year"', 'sum(g_by_y_ym_p.sum_sales_rub_f) as "sales_rub__sum"',
+                 'sum(g_by_y_ym_p.sum_pcs_f) as "pcs__sum"',
+                 'count(dim_publisher.publisher_name_field_f) as publisher_name__count']:
+        assert item in select_list_y_ym_p
+
+    assert len(select_for_group_by_y_ym_p) == 1
+
+    assert has_calculation_g_y_ym_p is True
+    assert len(joins_g_y_ym_p) == 1
+
+    assert {'olap_test.games_olap.dim_publisher': 'ON g_by_y_ym_p.sk_id_publisher_f = dim_publisher.id_f'} == \
+           joins_g_y_ym_p
+
+    assert len(where_g_y_ym_p) == 0
+
+
+def test_service_key_count():
+    # Тест для калькуляции count на service_key
+    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_and_agg_without_join)
+
+    short_table_only_base: ShortTablesCollectionForSelect \
+        = olap_service.generate_pre_select_collection(frontend_to_backend_type,
+                                                      olap_structure_generator.get_tables_collection())
+
+    # BASE_TABLE_NAME
+    select_list, select_for_group_by, joins, where, has_calculation \
+        = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, BASE_TABLE_NAME)
+
+    assert len(select_list) == 3
+
+    for item in ['base_sales.year_f as "year"', 'base_sales.english_f as "english"',
+                 'count(base_sales.sk_id_game_f) as "sk_id_game__count"']:
+        assert item in select_list
+
+    assert len(select_for_group_by) == 2
+
+    assert has_calculation is True
+    assert len(joins) == 0
+
+    assert len(where) == 0
+
+
+def test_where_in_base_table():
+    # where в базовой таблице
+    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_no_join_wht_where)
+
+    short_table_only_base: ShortTablesCollectionForSelect \
+        = olap_service.generate_pre_select_collection(frontend_to_backend_type,
+                                                      olap_structure_generator.get_tables_collection())
+
+    select_list, select_for_group_by, joins, where, has_calculation \
+        = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, BASE_TABLE_NAME)
+
+    assert len(select_list) == 2
+
+    for item in ['base_sales.year_f as "year"', 'base_sales.pcs_f as "pcs"']:
+        assert item in select_list
+
+    assert len(select_for_group_by) == 0
+
+    assert has_calculation is False
+    assert len(joins) == 0
+
+    assert len(where) == 2
+    for item in ['base_sales.release_date_f > 2024-01-01', 'base_sales.price_f > 1000']:
+        assert item in where
+
+
+def test_where_in_join():
+    # where в join
+    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_join_wht_where)
+
+    short_table_only_base: ShortTablesCollectionForSelect \
+        = olap_service.generate_pre_select_collection(frontend_to_backend_type,
+                                                      olap_structure_generator.get_tables_collection())
+
+    select_list, select_for_group_by, joins, where, has_calculation \
+        = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, BASE_TABLE_NAME)
+
+    assert len(select_list) == 2
+
+    for item in ['base_sales.year_f as "year"', 'base_sales.pcs_f as "pcs"']:
+        assert item in select_list
+
+    assert len(select_for_group_by) == 0
+
+    assert has_calculation is False
+    assert len(joins) == 1
+    assert {'olap_test.games_olap.dim_game': 'ON base_sales.sk_id_game_f = dim_game.sk_id_game_f'} == joins
+
+    assert len(where) == 3
+    for item in ['base_sales.release_date_f > 2024-01-01', 'base_sales.price_f > 1000',
+                 'dim_game.game_name = The Best Game']:
+        assert item in where
+
+
+def test_where_with_agg_in_base_table():
+    # where c агрегацией в базовой таблице
+    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_join_with_where)
+
+    # Should be only main field left
+    short_table_only_base: ShortTablesCollectionForSelect \
+        = olap_service.generate_pre_select_collection(frontend_to_backend_type,
+                                                      olap_structure_generator.get_tables_collection())
+
+    select_list, select_for_group_by, joins, where, has_calculation \
+        = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, BASE_TABLE_NAME)
+
+    assert len(select_list) == 5
+
+    for item in ['base_sales.year_f as "year"', 'base_sales.pcs_f as "pcs"',
+                 'sum(base_sales.achievements_f) as "achievements__sum"', 'sum(base_sales.pcs_f) as "pcs__sum"',
+                 'sum(base_sales.price_f) as "price__sum"']:
+        assert item in select_list
+
+    assert len(select_for_group_by) == 2
+
+    assert has_calculation is True
+    assert len(joins) == 0
+
+    assert len(where) == 2
+    for item in ['base_sales.release_date_f > 2024-01-01', 'base_sales.price_f > 1000']:
+        assert item in where
+
+
+def test_where_with_agg_in_join():
+    # where c агрегацией в join
+    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_join_wth_where)
+
+    # Should be only main field left
+    short_table_only_base: ShortTablesCollectionForSelect \
+        = olap_service.generate_pre_select_collection(frontend_to_backend_type,
+                                                      olap_structure_generator.get_tables_collection())
+
+    select_list, select_for_group_by, joins, where, has_calculation \
+        = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, BASE_TABLE_NAME)
+
+    assert len(select_list) == 6
+
+    for item in ['base_sales.year_f as "year"', 'base_sales.pcs_f as "pcs"',
+                 'sum(base_sales.achievements_f) as "achievements__sum"', 'sum(base_sales.pcs_f) as "pcs__sum"',
+                 'sum(base_sales.price_f) as "price__sum"', 'dim_game.bk_game_id_f as bk_id_game']:
+        assert item in select_list
+
+    assert len(select_for_group_by) == 3
+
+    assert has_calculation is True
+    assert len(joins) == 1
+
+    assert {'olap_test.games_olap.dim_game': 'ON base_sales.sk_id_game_f = dim_game.sk_id_game_f'} == joins
+
+    assert len(where) == 3
+    for item in ['base_sales.release_date_f > 2024-01-01', 'base_sales.price_f > 1000',
+                 'dim_game.game_name = The Best Game']:
+        assert item in where
 
 
 if __name__ == "__main__":
@@ -400,4 +581,8 @@ if __name__ == "__main__":
     # test_one_value_in_aggregate()
     # test_should_be_only_base_table_no_group_by_join()
     # test_base_table_wth_gb_agg_no_gb_join()
-    test_agg_table_wth_join_with_agg()
+    # test_agg_table_wth_join_with_agg()
+    # test_service_key_count()
+    # test_where_in_base_table()
+    # test_where_in_join()
+    test_where_with_agg_in_base_table()
