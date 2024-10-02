@@ -30,7 +30,7 @@ one_agg_value: dict = {'SELECT': [],
                        'CALCULATION': [{'field_name': 'sales_rub', 'calculation': 'sum'}],
                        'WHERE': []}
 
-# This should only use base_sales table
+# This should only have one dimension table
 one_dimension: dict = {'SELECT': [{'field_name': 'bk_id_game'}],
                        'CALCULATION': [],
                        'WHERE': []}
@@ -103,3 +103,13 @@ base_table_with_join_wth_where: dict = {'SELECT': [{'field_name': 'year'},
                                                   {'field_name': 'game_name',
                                                    'where': '=', 'condition': 'The Best Game'}
                                                   ]}
+
+# This should only have one dimension table
+one_dimension_count: dict = {'SELECT': [{'field_name': 'bk_id_game'}],
+                             'CALCULATION': [{'field_name': 'bk_id_game', 'calculation': 'count'}],
+                             'WHERE': []}
+
+# This should only have one dimension table
+one_dimension_count_where: dict = {'SELECT': [{'field_name': 'bk_id_game'}],
+                                   'CALCULATION': [{'field_name': 'bk_id_game', 'calculation': 'count'}],
+                                   'WHERE': [{'field_name': 'game_name', 'where': 'like', 'condition': 'a%'}]}
