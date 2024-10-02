@@ -7,9 +7,6 @@ from comradewolf.utils.utils import create_field_with_calculation
 
 NO_FACT_TABLES = "No fact tables"
 
-MANY_DIMENSION_TABLES_ERR = ("Two or more dimension tables are without fact table are in query. There is no way to "
-                             "join them")
-
 FIELD_NAME_WITH_ALIAS = '{} as "{}"'
 
 
@@ -386,7 +383,7 @@ class OlapService:
         :return:
         """
 
-        return self.olap_select_builder.generate_structure_for_each_possible_table(short_tables_collection, table)
+        return self.olap_select_builder.generate_structure_for_each_fact_table(short_tables_collection, table)
 
     def generate_select_query(self, select_list: list, select_for_group_by: list, joins: dict, where: list,
                               has_calculation: bool, table_name: str, not_selected_fields_no: int) -> str:
@@ -446,59 +443,7 @@ class OlapService:
 
         return has_fact_field
 
-    def generate_pre_select_for_dimension_only(self, frontend_fields: OlapFrontendToBackend,
+    def generate_structure_for_dimension_table(self, frontend_fields: OlapFrontendToBackend,
                                                tables_collection: OlapTablesCollection) \
             -> tuple[str | None, list[str], list[str], list[str], bool]:
-        short_tables_collection: ShortTablesCollectionForSelect = ShortTablesCollectionForSelect()
-
-        def get_table_name_by_field(current_table_name_: str, table_name_: str) -> tuple[str, str]:
-            if table_name_ is None:
-                table_name_ = current_table_name_
-            else:
-                if table_name_ != current_table_name_:
-                    raise OlapException(MANY_DIMENSION_TABLES_ERR)
-
-            short_table_name_ = table_name_.split(".")[-1]
-
-            return table_name_, short_table_name_
-
-        table_name: str | None = None
-        short_table_name: str
-
-        select_list: list[str] = []
-        # Fields to put after group by. Separate by comma
-        select_for_group_by: list[str] = []
-        # All field should be inner joined
-        # Structure {join_table_name: sk}
-        where: list[str] = []
-        # Has calculation
-        has_calculation: bool = False
-
-        for field in frontend_fields.get_select():
-            current_table_name: str = tables_collection.get_dimension_table_with_field(field["field_name"])[0]
-            table_name, short_table_name = get_table_name_by_field(current_table_name, table_name)
-            backend_name: str = "{}.{}" \
-                .format(short_table_name, tables_collection.get_backend_field_name(table_name, field["field_name"]))
-            current_backend_name = FIELD_NAME_WITH_ALIAS.format(f"{short_tables_collection}.{backend_name}",
-                                                                field["field_name"])
-            select_list.append(current_backend_name)
-            select_for_group_by.append(current_backend_name)
-
-        for field in frontend_fields.get_calculation():
-            current_table_name: str = tables_collection.get_dimension_table_with_field(field["field_name"])[0]
-            table_name, short_table_name = get_table_name_by_field(current_table_name, table_name)
-            backend_name: str = "{}({}.{})" \
-                .format(field["calculation"], short_table_name,
-                        tables_collection.get_backend_field_name(table_name, field["field_name"]))
-            select_list.append(FIELD_NAME_WITH_ALIAS.format(f"{short_tables_collection}.{backend_name}",
-                                                            field["field_name"]))
-
-            has_calculation = True
-
-        for field in frontend_fields.get_where():
-            current_table_name: str = tables_collection.get_dimension_table_with_field(field["field_name"])[0]
-            table_name, short_table_name = get_table_name_by_field(current_table_name, table_name)
-            backend_name: str = f"{short_table_name}.{field['field_name']}"
-            where.append("{} {} {}".format(backend_name, field["where"], field["condition"]))
-
-        return table_name, select_list, select_for_group_by, where, has_calculation
+        return self.olap_select_builder.generate_structure_for_dimension_table(frontend_fields, tables_collection)

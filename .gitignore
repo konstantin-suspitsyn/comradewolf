@@ -3,3 +3,13 @@
 /dist/
 /build_project.txt
 /assets/time_me.txt
+/.idea/
+src/comradewolf/__pycache__/
+tests/test_olap/__pycache__/
+src/comradewolf/universe/__pycache__/
+src/comradewolf/utils/__pycache__/
+tests/__pycache__/
+*/__pycache__/
+/__pycache__/
+/.venv
+/.pytest_cache
