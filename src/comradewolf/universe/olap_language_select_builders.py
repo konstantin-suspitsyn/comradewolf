@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 
-from comradewolf.utils.exceptions import OlapException
 from comradewolf.utils.olap_data_types import ShortTablesCollectionForSelect, OlapFrontendToBackend, \
     OlapTablesCollection
 from comradewolf.utils.utils import create_field_with_calculation
@@ -89,10 +88,9 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
             short_table_name = current_table_name.split(".")[-1]
             backend_name: str = "{}.{}" \
                 .format(short_table_name, tables_collection.get_backend_field_name(current_table_name, field["field_name"]))
-            current_backend_name = FIELD_NAME_WITH_ALIAS.format(f"{short_tables_collection}.{backend_name}",
-                                                                field["field_name"])
+            current_backend_name = FIELD_NAME_WITH_ALIAS.format(f"{backend_name}", field["field_name"])
             select_list.append(current_backend_name)
-            select_for_group_by.append(current_backend_name)
+            select_for_group_by.append(backend_name)
 
         for field in frontend_fields.get_calculation():
             current_table_name = tables_collection.get_dimension_table_with_field(field["field_name"])[0]
@@ -100,8 +98,7 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
             backend_name: str = "{}({}.{})" \
                 .format(field["calculation"], short_table_name,
                         tables_collection.get_backend_field_name(current_table_name, field["field_name"]))
-            select_list.append(FIELD_NAME_WITH_ALIAS.format(f"{short_tables_collection}.{backend_name}",
-                                                            field["field_name"]))
+            select_list.append(FIELD_NAME_WITH_ALIAS.format(f"{backend_name}", field["field_name"]))
 
             has_calculation = True
 
