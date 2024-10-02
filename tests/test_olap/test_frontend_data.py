@@ -31,7 +31,7 @@ one_agg_value: dict = {'SELECT': [],
                        'WHERE': []}
 
 # This should only use base_sales table
-one_dimension: dict = {'SELECT': [{'field_name': 'bk_game_id'}],
+one_dimension: dict = {'SELECT': [{'field_name': 'bk_id_game'}],
                        'CALCULATION': [],
                        'WHERE': []}
 

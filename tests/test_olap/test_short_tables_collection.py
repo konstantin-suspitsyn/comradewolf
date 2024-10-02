@@ -292,7 +292,7 @@ def test_one_dimension_in_aggregate():
         = olap_service.generate_pre_select_collection(frontend_to_backend_type,
                                                       olap_structure_generator.get_tables_collection())
 
-    assert len(short_table_only_base) == 0
+    assert len(short_table_only_base) == 1
 
 
 def test_one_dimension_no_aggregate():
@@ -665,7 +665,7 @@ if __name__ == "__main__":
     # test_base_table_wth_gb_agg_no_gb()
     # test_base_agg_wth_agg()
     # test_one_value_in_aggregate()
-    # test_one_dimension_in_aggregate()
+    test_one_dimension_in_aggregate()
     # test_should_be_only_base_table_no_group_by_join()
     # test_base_table_wth_gb_agg_no_gb_join()
     # test_agg_table_wth_join_with_agg()
@@ -673,4 +673,4 @@ if __name__ == "__main__":
     # test_where_in_base_table()
     # test_where_in_join()
     # test_where_with_agg_in_base_table()
-    test_where_with_agg_in_join()
+    # test_where_with_agg_in_join()
