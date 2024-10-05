@@ -7,8 +7,6 @@ from comradewolf.utils.utils import create_field_with_calculation
 
 NO_FACT_TABLES = "No fact tables"
 
-FIELD_NAME_WITH_ALIAS = '{} as "{}"'
-
 
 class OlapService:
     """
@@ -18,6 +16,43 @@ class OlapService:
 
     def __init__(self, olap_select_builder: OlapSelectBuilder):
         self.olap_select_builder = olap_select_builder
+
+    @staticmethod
+    def fact_table_in_query(frontend_fields: OlapFrontendToBackend, tables_collection: OlapTablesCollection) -> bool:
+        """
+        Checks if fact table is in query
+        :param tables_collection:
+        :param frontend_fields:
+        :return:
+        """
+
+        all_fact_fields: list[str] = []
+
+        for fact_table in tables_collection.get_fact_tables_collection():
+            for field in fact_table["fields"]:
+                all_fact_fields.append(field)
+
+        for field in frontend_fields.get_select():
+            if field["field_name"] in all_fact_fields:
+                return True
+
+        for field in frontend_fields.get_calculation():
+            if field["field_name"] in all_fact_fields:
+                return True
+
+        for field in frontend_fields.get_where():
+            if field["field_name"] in all_fact_fields:
+                return True
+
+        return False
+
+    def build_select(self, frontend_fields: OlapFrontendToBackend) -> dict:
+        """
+        Builds
+        :param frontend_fields:
+        :return:
+        """
+        pass
 
     def generate_pre_select_collection(self, frontend_fields: OlapFrontendToBackend,
                                        tables_collection: OlapTablesCollection) -> ShortTablesCollectionForSelect:
@@ -323,6 +358,8 @@ class OlapService:
         """
         Adds calculation with join if possible
         Only works with dimension table calculations
+        :param service_key_fact:
+        :param service_key_dimension:
         :param table_collection: OlapTablesCollection needed to get correct field name
         :param current_field_name: frontend field name
         :param current_calculation: frontend calculation

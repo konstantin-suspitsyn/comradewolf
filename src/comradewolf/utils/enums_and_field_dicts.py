@@ -97,7 +97,6 @@ class OlapFieldTypes(enum.Enum):
     VALUE = "value"
     DIMENSION = "dimension"
     SERVICE_KEY = "service_key"
-    DATE_TIME = "date_time"
 
 
 class OlapCalculations(enum.Enum):
@@ -124,3 +123,16 @@ class OlapFollowingCalculations(enum.Enum):
     MAX = "max"
     MIN = "min"
     AVG = "avg"
+
+
+class OlapDataType(enum.Enum):
+    """
+    Types of data of column
+
+    It's used to make correct query. For example date type '2024-10-04'. For some databases
+    is fine just like '2024-10-04'. But for some others you should cast it like cast('2024-10-04' as date) and so on
+    """
+    DATE = "date"
+    DATE_TIME = "datetime"
+    TEXT = "text"
+    NUMBER = "number"

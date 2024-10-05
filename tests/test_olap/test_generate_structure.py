@@ -584,5 +584,5 @@ if __name__ == "__main__":
     # test_agg_table_wth_join_with_agg()
     # test_service_key_count()
     # test_where_in_base_table()
-    # test_where_in_join()
-    test_where_with_agg_in_base_table()
+    test_where_in_join()
+    # test_where_with_agg_in_base_table()
