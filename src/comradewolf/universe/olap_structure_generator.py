@@ -62,6 +62,7 @@ class OlapStructureGenerator:
 
             dimension_table.add_field(field, dimension_from_toml["fields"][field]["field_type"],
                                       return_none_on_text(dimension_from_toml["fields"][field]["alias"]),
+                                      dimension_from_toml["fields"][field]["data_type"],
                                       return_none_on_text(dimension_from_toml["fields"][field]["front_name"]),
                                       use_sk_for_count)
 
@@ -88,6 +89,7 @@ class OlapStructureGenerator:
                                  return_none_on_text(data_from_toml["fields"][field]["field_type"]),
                                  self.__transform_calculation(data_from_toml["fields"][field]["calculation_type"]),
                                  self.__transform_calculation(data_from_toml["fields"][field]["following_calculation"]),
+                                 data_from_toml["fields"][field]["data_type"],
                                  return_none_on_text(data_from_toml["fields"][field]["front_name"])
                                  )
 
@@ -111,7 +113,8 @@ class OlapStructureGenerator:
             if self.main_data_table["fields"][field]["field_type"] != OlapFieldTypes.SERVICE_KEY.value:
                 field_type: str = self.main_data_table["fields"][field]["field_type"]
                 front_name: str = self.main_data_table["fields"][field]["front_name"]
-                self.frontend_fields.add_field(field, field_type, front_name)
+                data_type: str = self.main_data_table["fields"][field]["data_type"]
+                self.frontend_fields.add_field(field, field_type, front_name, data_type)
 
         for table in self.tables_collection["dimension_tables"]:
             for field in self.tables_collection["dimension_tables"][table]["fields"]:
@@ -119,7 +122,8 @@ class OlapStructureGenerator:
                         OlapFieldTypes.DIMENSION.value:
                     field_type = self.tables_collection["dimension_tables"][table]["fields"][field]["field_type"]
                     front_name = self.tables_collection["dimension_tables"][table]["fields"][field]["front_name"]
-                    self.frontend_fields.add_field(field, field_type, front_name)
+                    data_type: str = self.tables_collection["dimension_tables"][table]["fields"][field]["data_type"]
+                    self.frontend_fields.add_field(field, field_type, front_name, data_type)
 
     def get_front_fields(self) -> OlapFrontend:
         """

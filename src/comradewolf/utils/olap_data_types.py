@@ -41,10 +41,11 @@ class OlapDataTable(UserDict):
         super().__init__({"table_name": table_name, "fields": {}})
 
     def add_field(self, field_name: str, alias_name: str, field_type: str, calculation_type: str | None,
-                  following_calculation: str | None, front_name: str | None = None) \
+                  following_calculation: str | None, data_type: str, front_name: str | None = None) \
             -> None:
         """
         Adds a field to this object
+        :param data_type:
         :param field_name:
         :param alias_name:
         :param field_type:
@@ -69,6 +70,7 @@ class OlapDataTable(UserDict):
             "calculation_type": calculation_type,
             "following_calculation": following_calculation,
             "front_name": front_name,
+            "data_type": data_type,
         }
 
     @staticmethod
@@ -166,10 +168,11 @@ class OlapDimensionTable(UserDict):
         """
         super().__init__({"table_name": table_name, "fields": {}})
 
-    def add_field(self, field_name: str, field_type: str, alias_name: str, front_name: str | None = None,
-                  use_sk_for_count: bool = False) -> None:
+    def add_field(self, field_name: str, field_type: str, alias_name: str, data_type: str,
+                  front_name: str | None = None, use_sk_for_count: bool = False) -> None:
         """
         Creates new field
+        :param data_type: data type. Should be one of values from OlapDataType()
         :param use_sk_for_count: True if you can use service key both for count and count distinct
         :param field_name: table name of field
         :param field_type: either OlapFieldTypes.DIMENSION.value or OlapFieldTypes.SERVICE_KEY.value
@@ -188,6 +191,7 @@ class OlapDimensionTable(UserDict):
             "field_type": field_type,
             "front_name": front_name,
             "use_sk_for_count": use_sk_for_count,
+            "data_type": data_type,
         }
 
     def __check_dimension_field_types(self, field_type) -> None:
@@ -476,9 +480,10 @@ class OlapFrontend(UserDict):
 
     """
 
-    def add_field(self, alias: str, field_type: str, front_name: str) -> None:
+    def add_field(self, alias: str, field_type: str, front_name: str, data_type: str) -> None:
         """
         Add field to show on frontend
+        :param data_type: data type of field
         :param field_type:
         :param alias:
         :param front_name:
@@ -487,6 +492,7 @@ class OlapFrontend(UserDict):
         self.data[alias] = {
             "field_type": field_type,
             "front_name": front_name,
+            "data_type": data_type,
         }
 
 
