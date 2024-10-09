@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 
+from comradewolf.utils.enums_and_field_dicts import OlapDataType, WhereConditionType
+from comradewolf.utils.exceptions import OlapException
 from comradewolf.utils.olap_data_types import ShortTablesCollectionForSelect, OlapFrontendToBackend, \
-    OlapTablesCollection
+    OlapTablesCollection, OlapFrontend
 from comradewolf.utils.utils import create_field_with_calculation
 
 FIELD_NAME_WITH_ALIAS = '{} as "{}"'
@@ -51,7 +53,7 @@ class OlapSelectBuilder(ABC):
         pass
 
     @abstractmethod
-    def generate_structure_for_dimension_table(self, frontend_fields: OlapFrontendToBackend,
+    def generate_structure_for_dimension_table(self, frontend_fields: OlapFrontend,
                                                tables_collection: OlapTablesCollection) \
             -> tuple[str, list[str], list[str], list[str], bool]:
         """
@@ -60,6 +62,18 @@ class OlapSelectBuilder(ABC):
         :param tables_collection:
         :param frontend_fields:
         :return: table_name, select_list, select_for_group_by, where, has_calculation
+        """
+        pass
+
+    def generate_where_condition(self, field_alias: str, type_of_where: str, front_condition: list | str | float | int,
+                                 field_type: str) -> str:
+        """
+        Generate where based on field type
+        :param field_type:
+        :param field_alias:
+        :param type_of_where:
+        :param front_condition:
+        :return:
         """
         pass
 
@@ -273,3 +287,63 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
                                                    condition[field_name]["condition"]))
 
         return select_list, select_for_group_by, joins, where, has_calculation
+
+    def generate_where_condition(self, field_alias: str, type_of_where: str, front_condition: list | str | float | int,
+                                 data_type: str) -> str:
+        """
+        Generate where based on field type
+        :param data_type:
+        :param field_alias:
+        :param type_of_where:
+        :param front_condition:
+        :return:
+        """
+        condition = ""
+
+        type_of_where = type_of_where.upper()
+
+        all_where_types = [e.value for e in WhereConditionType]
+
+        if type_of_where not in all_where_types:
+            raise OlapException(f"Check your where condition. {type_of_where} not in {','.join(all_where_types)}")
+
+        current_placeholder: str
+
+        string_placeholder = r"'{}'"
+        date_placeholder = r"'{}'"
+        in_placeholder = "({})"
+        number_placeholder = "{}"
+        and_placeholder = "{} AND {}"
+
+        if data_type == OlapDataType.DATE.value:
+            current_placeholder = date_placeholder
+        elif data_type == OlapDataType.NUMBER.value:
+            current_placeholder = number_placeholder
+        elif data_type == OlapDataType.TEXT.value:
+            current_placeholder = string_placeholder
+        elif data_type == OlapDataType.DATE_TIME.value:
+            current_placeholder = date_placeholder
+        else:
+            raise OlapException(f"Field type {data_type} is unknown")
+
+        if type_of_where == WhereConditionType.BETWEEN:
+            if not isinstance(front_condition, list):
+                raise OlapException("front_condition should be list")
+
+            if len(front_condition) != 2:
+                raise OlapException("front_condition should have 2 elements")
+
+            condition = and_placeholder.format(current_placeholder.format(front_condition[0]),
+                                               current_placeholder.format(front_condition[1]))
+        elif type_of_where in [WhereConditionType.IN, WhereConditionType.NOT_IN]:
+            if isinstance(front_condition, list):
+                temp_condition = []
+                for item in front_condition:
+                    temp_condition.append(current_placeholder.format(item))
+                condition = in_placeholder.format(",".join(temp_condition))
+        else:
+            if isinstance(front_condition, list):
+                OlapException("List instead of str or int or float")
+            condition = current_placeholder.format(front_condition)
+
+        return condition

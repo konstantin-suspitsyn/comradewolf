@@ -495,40 +495,65 @@ class OlapFrontend(UserDict):
             "data_type": data_type,
         }
 
+    def get_data_type(self, alias: str) -> str:
+        """
+        Get field_type of alias
+        :param alias: field alias
+        :return: string of field-type
+        """
+        return self.data[alias]["data_type"]
+
 
 class OlapFrontendToBackend(UserDict):
     """
-    Type converts from Frontend to Backend for Olap to create SELECT
+    Backend structure created from user frontend query input
+
+    Generates structure
+    {'SELECT': ['field_name', 'field_name',],
+    'CALCULATION': [{'fieldName': 'field_name', 'calculation': 'CalculationType'},
+                     {'fieldName': 'field_name', 'calculation': 'CalculationType'},
+                   ],
+    'WHERE': [{
+                'fieldName': 'field_name', 'where': 'where_type (>, <, =, ...)', 'condition': 'condition_string'
+                },
+              ]}
+
     """
 
     #TODO: Add classes for Inner Data Structures
 
-    def __init__(self, frontend: dict) -> None:
-        """
-
-        :param frontend:
-            {'SELECT': ['field_name', 'field_name',],
-            'CALCULATION': [{'fieldName': 'field_name', 'calculation': 'CalculationType'},
-                             {'fieldName': 'field_name', 'calculation': 'CalculationType'},
-                           ],
-            'WHERE': [{
-                        'fieldName': 'field_name', 'where': 'where_type (>, <, =, ...)', 'condition': 'condition_string'
-                        },
-                      ]}
-        """
+    def __init__(self) -> None:
 
         backend: dict = {"SELECT": [], "CALCULATION": [], "WHERE": []}
 
-        if "SELECT" in frontend.keys():
-            backend["SELECT"] = frontend["SELECT"]
+        super().__init__(backend)
 
-        if "CALCULATION" in frontend.keys():
-            backend["CALCULATION"] = frontend["CALCULATION"]
+    def add_select(self, select: dict) -> None:
+        """
+        Adds select fields
+        :param select: dictionary with prepared select structure
+        :return: None
+        """
+        for item in select:
+            self.data["SELECT"].append(item)
 
-        if "SELECT" in frontend.keys():
-            backend["WHERE"] = frontend["WHERE"]
+    def add_calculation(self, calculation: dict):
+        """
+        Adds select fields
+        :param calculation: dictionary with prepared calculation structure
+        :return: None
+        """
+        for item in calculation:
+            self.data["CALCULATION"].append(item)
 
-        super().__init__(frontend)
+    def add_where(self, where: list):
+        """
+        Adds select fields
+        :param where: dictionary with prepared where structure
+        :return: None
+        """
+        for item in where:
+            self.data["WHERE"].append(item)
 
     def get_select(self) -> list:
         """

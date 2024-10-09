@@ -1,10 +1,11 @@
 import pytest
 
 from comradewolf.universe.olap_language_select_builders import OlapPostgresSelectBuilder
+from comradewolf.universe.olap_prompt_converter_service import OlapPromptConverterService
 from comradewolf.universe.olap_service import OlapService, NO_FACT_TABLES
 from comradewolf.universe.olap_structure_generator import OlapStructureGenerator
 from comradewolf.utils.exceptions import OlapException
-from comradewolf.utils.olap_data_types import OlapFrontendToBackend, ShortTablesCollectionForSelect
+from comradewolf.utils.olap_data_types import OlapFrontendToBackend, ShortTablesCollectionForSelect, OlapFrontend
 from tests.constants_for_testing import get_olap_games_folder
 from tests.test_olap.test_frontend_data import base_table_with_join_no_where_no_calc, base_table_with_join_no_where, \
     group_by_read_no_where, group_by_also_in_agg, one_agg_value, one_dimension, base_table_with_join_no_gb, \
@@ -23,7 +24,10 @@ DIM_PUBLISHER = "olap_test.games_olap.dim_publisher"
 olap_structure_generator: OlapStructureGenerator = OlapStructureGenerator(get_olap_games_folder())
 olap_select_builder = OlapPostgresSelectBuilder()
 olap_service: OlapService = OlapService(olap_select_builder)
-
+postgres_query_generator = OlapPostgresSelectBuilder()
+olap_select_builder = OlapPostgresSelectBuilder()
+olap_prompt_service: OlapPromptConverterService = OlapPromptConverterService(postgres_query_generator)
+frontend_all_items_view: OlapFrontend = olap_structure_generator.frontend_fields
 
 def gather_dict_data(fields_with_front_and_back: list) -> list:
     """
@@ -42,7 +46,8 @@ def gather_dict_data(fields_with_front_and_back: list) -> list:
 
 def test_should_be_only_base_table_no_group_by() -> None:
     # Поля, которые есть только в базовой таблице без group by
-    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_join_no_where_no_calc)
+    frontend_to_backend_type: OlapFrontendToBackend = olap_prompt_service.create_frontend_to_backend(
+        base_table_with_join_no_where_no_calc, frontend_all_items_view)
 
     # Should be only main field left
     short_table_only_base: ShortTablesCollectionForSelect \
@@ -68,7 +73,8 @@ def test_should_be_only_base_table_no_group_by() -> None:
 
 def test_should_be_only_base_table_with_group_by():
     # Поля, которые есть в базовой таблице с group by
-    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_join_no_where)
+    frontend_to_backend_type: OlapFrontendToBackend = olap_prompt_service.create_frontend_to_backend(
+        base_table_with_join_no_where, frontend_all_items_view)
 
     # Should be only main field left
     short_table_only_base: ShortTablesCollectionForSelect \
@@ -96,7 +102,8 @@ def test_should_be_only_base_table_with_group_by():
 
 def test_base_table_wth_gb_agg_no_gb():
     # Поля, которые есть в базовой таблице с group by и в агрегатной таблице без group by
-    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(group_by_read_no_where)
+    frontend_to_backend_type: OlapFrontendToBackend = olap_prompt_service.create_frontend_to_backend(
+        group_by_read_no_where, frontend_all_items_view)
 
     # Should be only main field left
     short_table_only_base: ShortTablesCollectionForSelect \
@@ -150,7 +157,8 @@ def test_base_table_wth_gb_agg_no_gb():
 
 def test_base_agg_wth_agg():
     # Поля, которые есть в базовой таблице с group by и в агрегатной таблице с group by
-    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(group_by_also_in_agg)
+    frontend_to_backend_type: OlapFrontendToBackend = olap_prompt_service.create_frontend_to_backend(
+        group_by_also_in_agg, frontend_all_items_view)
 
     # Should be only main field left
     short_table_only_base: ShortTablesCollectionForSelect \
@@ -265,7 +273,8 @@ def test_base_agg_wth_agg():
 
 def test_one_value_in_aggregate():
     # Только одно поле value в агрегат
-    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(one_agg_value)
+    frontend_to_backend_type: OlapFrontendToBackend = olap_prompt_service.create_frontend_to_backend(
+        one_agg_value, frontend_all_items_view)
 
     short_table_only_base: ShortTablesCollectionForSelect \
         = olap_service.generate_pre_select_collection(frontend_to_backend_type,
@@ -285,7 +294,8 @@ def test_one_value_in_aggregate():
 
 def test_one_dimension_in_aggregate():
     # Только одно поле dimension в агрегат
-    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(one_dimension)
+    frontend_to_backend_type: OlapFrontendToBackend = olap_prompt_service.create_frontend_to_backend(
+        one_dimension, frontend_all_items_view)
 
     # Should be only main field left
     short_table_only_base: ShortTablesCollectionForSelect \
@@ -302,7 +312,8 @@ def test_one_dimension_no_aggregate():
 
 def test_should_be_only_base_table_no_group_by_join():
     # Поля, которые есть только в базовой таблице без group by c join dimension table
-    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_join_no_gb)
+    frontend_to_backend_type: OlapFrontendToBackend = olap_prompt_service.create_frontend_to_backend(
+        base_table_with_join_no_gb, frontend_all_items_view)
 
     # Should be only main field left
     short_table_only_base: ShortTablesCollectionForSelect \
@@ -339,7 +350,8 @@ def test_should_be_only_base_table_no_group_by_join():
 
 def test_base_table_wth_gb_agg_no_gb_join():
     # Поля, которые есть в базовой таблице с group by и в агрегатной таблице без group by c join dimension table
-    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_and_agg)
+    frontend_to_backend_type: OlapFrontendToBackend = olap_prompt_service.create_frontend_to_backend(
+        base_table_with_and_agg, frontend_all_items_view)
 
     short_table_only_base: ShortTablesCollectionForSelect \
         = olap_service.generate_pre_select_collection(frontend_to_backend_type,
@@ -423,7 +435,8 @@ def test_base_table_wth_gb_agg_no_gb_join():
 def test_agg_table_wth_join_with_agg():
     # Aggregate таблицу с join c последующей агрегацией
     # Поля, которые есть в базовой таблице с group by и в агрегатной таблице без group by c join dimension table
-    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_and_agg_with_join)
+    frontend_to_backend_type: OlapFrontendToBackend = olap_prompt_service.create_frontend_to_backend(
+        base_table_with_and_agg_with_join, frontend_all_items_view)
 
     short_table_only_base: ShortTablesCollectionForSelect \
         = olap_service.generate_pre_select_collection(frontend_to_backend_type,
@@ -504,7 +517,8 @@ def test_agg_table_wth_join_with_agg():
 
 def test_service_key_count():
     # Тест для калькуляции count на service_key
-    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_and_agg_without_join)
+    frontend_to_backend_type: OlapFrontendToBackend = olap_prompt_service.create_frontend_to_backend(
+        base_table_with_and_agg_without_join, frontend_all_items_view)
 
     short_table_only_base: ShortTablesCollectionForSelect \
         = olap_service.generate_pre_select_collection(frontend_to_backend_type,
@@ -531,7 +545,8 @@ def test_service_key_count():
 
 def test_where_in_base_table():
     # where в базовой таблице
-    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_no_join_wht_where)
+    frontend_to_backend_type: OlapFrontendToBackend = olap_prompt_service.create_frontend_to_backend(
+        base_table_with_no_join_wht_where, frontend_all_items_view)
 
     short_table_only_base: ShortTablesCollectionForSelect \
         = olap_service.generate_pre_select_collection(frontend_to_backend_type,
@@ -560,7 +575,8 @@ def test_where_in_base_table():
 
 def test_where_in_join():
     # where в join
-    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_join_wht_where)
+    frontend_to_backend_type: OlapFrontendToBackend = olap_prompt_service.create_frontend_to_backend(
+        base_table_with_join_wht_where, frontend_all_items_view)
 
     short_table_only_base: ShortTablesCollectionForSelect \
         = olap_service.generate_pre_select_collection(frontend_to_backend_type,
@@ -593,7 +609,8 @@ def test_where_in_join():
 
 def test_where_with_agg_in_base_table():
     # where c агрегацией в базовой таблице
-    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_join_with_where)
+    frontend_to_backend_type: OlapFrontendToBackend = olap_prompt_service.create_frontend_to_backend(
+        base_table_with_join_with_where, frontend_all_items_view)
 
     # Should be only main field left
     short_table_only_base: ShortTablesCollectionForSelect \
@@ -625,7 +642,8 @@ def test_where_with_agg_in_base_table():
 
 def test_where_with_agg_in_join():
     # where c агрегацией в join
-    frontend_to_backend_type: OlapFrontendToBackend = OlapFrontendToBackend(base_table_with_join_wth_where)
+    frontend_to_backend_type: OlapFrontendToBackend = olap_prompt_service.create_frontend_to_backend(
+        base_table_with_join_wth_where, frontend_all_items_view)
 
     # Should be only main field left
     short_table_only_base: ShortTablesCollectionForSelect \
@@ -661,16 +679,16 @@ def test_where_with_agg_in_join():
 
 if __name__ == "__main__":
     test_should_be_only_base_table_no_group_by()
-    # test_should_be_only_base_table_with_group_by()
-    # test_base_table_wth_gb_agg_no_gb()
-    # test_base_agg_wth_agg()
-    # test_one_value_in_aggregate()
+    test_should_be_only_base_table_with_group_by()
+    test_base_table_wth_gb_agg_no_gb()
+    test_base_agg_wth_agg()
+    test_one_value_in_aggregate()
     test_one_dimension_in_aggregate()
-    # test_should_be_only_base_table_no_group_by_join()
-    # test_base_table_wth_gb_agg_no_gb_join()
-    # test_agg_table_wth_join_with_agg()
-    # test_service_key_count()
-    # test_where_in_base_table()
-    # test_where_in_join()
-    # test_where_with_agg_in_base_table()
-    # test_where_with_agg_in_join()
+    test_should_be_only_base_table_no_group_by_join()
+    test_base_table_wth_gb_agg_no_gb_join()
+    test_agg_table_wth_join_with_agg()
+    test_service_key_count()
+    test_where_in_base_table()
+    test_where_in_join()
+    test_where_with_agg_in_base_table()
+    test_where_with_agg_in_join()

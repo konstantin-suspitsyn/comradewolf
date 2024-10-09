@@ -136,3 +136,18 @@ class OlapDataType(enum.Enum):
     DATE_TIME = "datetime"
     TEXT = "text"
     NUMBER = "number"
+
+class WhereConditionType(enum.Enum):
+    """
+    What type of where can be: <, >, !=, in, not in ...
+    """
+    GREATER = ">"
+    GREATER_OR_EQUAL = ">="
+    LESS = "<"
+    LESS_OR_EQUAL = "<="
+    IN = "IN"
+    NOT_IN = "NOT IN"
+    BETWEEN = "BETWEEN"
+    EQUAL = "="
+    NOT_EQUAL = "<>"
+    LIKE = "LIKE"
