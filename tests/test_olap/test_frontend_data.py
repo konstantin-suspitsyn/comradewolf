@@ -113,3 +113,34 @@ one_dimension_count: dict = {'SELECT': [{'field_name': 'bk_id_game'}],
 one_dimension_count_where: dict = {'SELECT': [{'field_name': 'bk_id_game'}],
                                    'CALCULATION': [{'field_name': 'bk_id_game', 'calculation': 'count'}],
                                    'WHERE': [{'field_name': 'game_name', 'where': 'like', 'condition': 'a%'}]}
+
+where_in_string: dict = {'SELECT': [], 'CALCULATION': [],
+                                        'WHERE': [{'field_name': 'game_name',
+                                                   'where': 'IN', 'condition': ['Uno', 'Dos']}
+                                                  ]}
+
+where_in_number: dict = {'SELECT': [], 'CALCULATION': [],
+                                        'WHERE': [{'field_name': 'bk_id_game',
+                                                   'where': 'IN', 'condition': ['12', '25']}
+                                                  ]}
+
+where_not_in_string : dict = {'SELECT': [], 'CALCULATION': [],
+                                        'WHERE': [{'field_name': 'game_name',
+                                                   'where': 'NOT IN', 'condition': ['Uno', 'Dos']}
+                                                  ]}
+
+where_not_in_number: dict = {'SELECT': [], 'CALCULATION': [],
+                                        'WHERE': [{'field_name': 'bk_id_game',
+                                                   'where': 'NOT IN', 'condition': ['12', '25']}
+                                                  ]}
+
+where_between_string : dict = {'SELECT': [], 'CALCULATION': [],
+                                        'WHERE': [{'field_name': 'game_name',
+                                                   'where': 'BETWEEN', 'condition': ['Uno', 'Dos']}
+                                                  ]}
+
+where_between_numbers : dict = {'SELECT': [], 'CALCULATION': [],
+                                        'WHERE': [{'field_name': 'bk_id_game',
+                                                   'where': 'BETWEEN', 'condition': [1, 1000]}
+                                                  ]}
+

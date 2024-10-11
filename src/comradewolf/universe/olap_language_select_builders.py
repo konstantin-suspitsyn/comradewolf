@@ -326,7 +326,7 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
         else:
             raise OlapException(f"Field type {data_type} is unknown")
 
-        if type_of_where == WhereConditionType.BETWEEN:
+        if type_of_where == WhereConditionType.BETWEEN.value:
             if not isinstance(front_condition, list):
                 raise OlapException("front_condition should be list")
 
@@ -335,7 +335,7 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
 
             condition = and_placeholder.format(current_placeholder.format(front_condition[0]),
                                                current_placeholder.format(front_condition[1]))
-        elif type_of_where in [WhereConditionType.IN, WhereConditionType.NOT_IN]:
+        elif type_of_where in [WhereConditionType.IN.value, WhereConditionType.NOT_IN.value]:
             if isinstance(front_condition, list):
                 temp_condition = []
                 for item in front_condition:

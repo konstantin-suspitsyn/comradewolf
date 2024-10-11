@@ -19,19 +19,22 @@ def test_frontend_view() -> None:
     for front_key in front_keys:
         assert front_key in olap_frontend
 
-    assert {'achievements': {'data_type': 'number', 'field_type': 'value', 'front_name': 'Amount of achievements'},
-     'bk_id_game': {'data_type': 'text', 'field_type': 'dimension', 'front_name': 'Game Id'},
-     'developer_name': {'data_type': 'text', 'field_type': 'dimension', 'front_name': 'Game Devloper'},
-     'english': {'data_type': 'text', 'field_type': 'dimension', 'front_name': 'Has english'},
-     'game_name': {'data_type': 'text', 'field_type': 'dimension', 'front_name': 'Game Name'},
-     'pcs': {'data_type': 'number', 'field_type': 'value', 'front_name': 'Pieces'},
-     'platform_name': {'data_type': 'text', 'field_type': 'dimension', 'front_name': 'Platform Name'},
-     'price': {'data_type': 'number', 'field_type': 'value', 'front_name': 'Price'},
-     'publisher_name': {'data_type': 'text', 'field_type': 'dimension', 'front_name': 'Publisher Name'},
-     'release_date': {'data_type': 'date', 'field_type': 'dimension', 'front_name': 'Release date'},
-     'sales_rub': {'data_type': 'number', 'field_type': 'value', 'front_name': 'Sales Rub'},
-     'year': {'data_type': 'number', 'field_type': 'dimension', 'front_name': 'Year'},
-     'yearmonth': {'data_type': 'number', 'field_type': 'dimension', 'front_name': 'Year_Month'}} == olap_frontend
+    print(olap_frontend)
+
+    assert {'release_date': {'field_type': 'dimension', 'front_name': 'Release date', 'data_type': 'date'},
+            'english': {'field_type': 'dimension', 'front_name': 'Has english', 'data_type': 'text'},
+            'achievements': {'field_type': 'value', 'front_name': 'Amount of achievements', 'data_type': 'number'},
+            'price': {'field_type': 'value', 'front_name': 'Price', 'data_type': 'number'},
+            'pcs': {'field_type': 'value', 'front_name': 'Pieces', 'data_type': 'number'},
+            'sales_rub': {'field_type': 'value', 'front_name': 'Sales Rub', 'data_type': 'number'},
+            'year': {'field_type': 'dimension', 'front_name': 'Year', 'data_type': 'number'},
+            'yearmonth': {'field_type': 'dimension', 'front_name': 'Year_Month', 'data_type': 'number'},
+            'developer_name': {'field_type': 'dimension', 'front_name': 'Game Devloper', 'data_type': 'text'},
+            'bk_id_game': {'field_type': 'dimension', 'front_name': 'Game Id', 'data_type': 'number'},
+            'game_name': {'field_type': 'dimension', 'front_name': 'Game Name', 'data_type': 'text'},
+            'platform_name': {'field_type': 'dimension', 'front_name': 'Platform Name', 'data_type': 'text'},
+            'publisher_name': {'field_type': 'dimension', 'front_name': 'Publisher Name', 'data_type': 'text'}} \
+           == olap_frontend
 
 
 if __name__ == "__main__":

@@ -41,3 +41,39 @@ database = "название базы данных"
 [fields]
 название_поля_х = {field_type = "service_key", alias = "sk_id_developer", front_name="none", data_type="number"}
 ```
+
+## Данные из Frontend
+
+Пустой JSON из frontend должен иметь структуру
+```
+{'SELECT': [], 'CALCULATION': [], 'WHERE': []}
+```
+
+### Where
+
+Числовые значения могут быть как текстовыми, так и числовыми. Ставить кавычки или нет, будет определено по типу поля
+
+IN и NOT IN
+```
+{'SELECT': [], 'CALCULATION': [],
+'WHERE': [{'field_name': 'game_name', 'where': 'NOT IN', 'condition': ['First Game', 'Second Game']}]}
+```
+
+BETWEEN
+```
+{'SELECT': [], 'CALCULATION': [],
+'WHERE': [{'field_name': 'bk_game_id', 'where': 'BETWEEN', 'condition': ['1', '1000']}]}
+```
+
+LIKE
+```
+{'SELECT': [], 'CALCULATION': [],
+'WHERE': [{'field_name': 'game_name', 'where': 'LIKE', 'condition': '%atma%'}]}
+```
+
+Остальное
+```
+{'SELECT': [], 'CALCULATION': [],
+'WHERE': [{'field_name': 'game_name', 'where': '=', 'condition': 'Atom heart'}]}
+```
+
