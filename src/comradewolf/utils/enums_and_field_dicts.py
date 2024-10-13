@@ -110,6 +110,7 @@ class OlapCalculations(enum.Enum):
     MIN = "min"
     AVG = "avg"
     NONE = "none"
+    DISTINCT = "distinct"
 
 
 class OlapFollowingCalculations(enum.Enum):
@@ -123,6 +124,7 @@ class OlapFollowingCalculations(enum.Enum):
     MAX = "max"
     MIN = "min"
     AVG = "avg"
+    DISTINCT = "distinct"
 
 
 class OlapDataType(enum.Enum):
@@ -151,3 +153,11 @@ class WhereConditionType(enum.Enum):
     EQUAL = "="
     NOT_EQUAL = "<>"
     LIKE = "LIKE"
+
+
+class FilterTypes(enum.Enum):
+    """
+    Types of dimensions you can get
+    """
+    MAX_MIN = "max_min"
+    ALL = "all"

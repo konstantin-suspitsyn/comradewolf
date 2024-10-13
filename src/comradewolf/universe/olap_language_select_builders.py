@@ -53,7 +53,7 @@ class OlapSelectBuilder(ABC):
         pass
 
     @abstractmethod
-    def generate_structure_for_dimension_table(self, frontend_fields: OlapFrontend,
+    def generate_structure_for_dimension_table(self, frontend_fields: OlapFrontendToBackend,
                                                tables_collection: OlapTablesCollection) \
             -> tuple[str, list[str], list[str], list[str], bool]:
         """

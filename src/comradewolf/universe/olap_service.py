@@ -1,8 +1,8 @@
 from comradewolf.universe.olap_language_select_builders import OlapSelectBuilder
-from comradewolf.utils.enums_and_field_dicts import OlapCalculations
+from comradewolf.utils.enums_and_field_dicts import OlapCalculations, OlapFollowingCalculations
 from comradewolf.utils.exceptions import OlapException
 from comradewolf.utils.olap_data_types import OlapFrontendToBackend, OlapTablesCollection, \
-    ShortTablesCollectionForSelect
+    ShortTablesCollectionForSelect, TableForFilter
 from comradewolf.utils.utils import create_field_with_calculation
 
 NO_FACT_TABLES = "No fact tables"
@@ -265,7 +265,7 @@ class OlapService:
         :return: ShortTablesCollectionForSelect
         """
 
-        table_collection_with_select = short_tables_collection.copy()
+        table_collection_with_select = short_tables_collection
 
         list_of_fact_tables = list(table_collection_with_select.keys())
 
@@ -484,3 +484,60 @@ class OlapService:
                                                tables_collection: OlapTablesCollection) \
             -> tuple[str | None, list[str], list[str], list[str], bool]:
         return self.olap_select_builder.generate_structure_for_dimension_table(frontend_fields, tables_collection)
+
+    @staticmethod
+    def get_tables_with_field(alias_field_name: str, tables_collection: OlapTablesCollection) -> list[str]:
+        """
+        Get tables with alias_field_name
+        Should be used for frontend filters
+        :param alias_field_name: alias of field
+        :param tables_collection:
+        :return: list of tables containing alias_field_name
+        """
+
+        table_names: list[str] = []
+
+        dimension_table_data = tables_collection.get_dimension_table_with_field(alias_field_name)
+
+        if dimension_table_data is not None:
+            table_names.append(dimension_table_data[0])
+
+            return table_names
+
+        data_tables = tables_collection.get_data_tables_with_field(alias_field_name)
+
+        if data_tables is None:
+            raise OlapException(f"Field {alias_field_name} does not exist")
+        else:
+            return data_tables
+
+    @staticmethod
+    def get_tables_for_filter(alias_field_name: str, tables: list[str], tables_collection: OlapTablesCollection) \
+            -> list[TableForFilter]:
+        """
+
+        :param tables_collection:
+        :param alias_field_name:
+        :param tables:
+        :return:
+        """
+
+        tables_filter: list[TableForFilter] = []
+
+        for table in tables:
+            is_distinct: bool = False
+
+            if table in tables_collection.get_dimension_table_names():
+                is_distinct = True
+                return [TableForFilter(table, alias_field_name, is_distinct, 0)]
+
+            if tables_collection.get_data_table_calculation(table, alias_field_name) == \
+                    OlapCalculations.DISTINCT.value:
+                is_distinct = True
+                return [TableForFilter(table, alias_field_name, is_distinct, 0)]
+
+            if tables_collection.get_data_table_calculation(table, alias_field_name) is None:
+                tables_filter.append(TableForFilter(table, alias_field_name, is_distinct,
+                                                    tables_collection.get_number_of_fields(table)))
+
+        return tables_filter
