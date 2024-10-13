@@ -1,6 +1,9 @@
 from collections import UserDict
 
-from comradewolf.utils.enums_and_field_dicts import OlapFieldTypes, OlapFollowingCalculations, OlapCalculations
+from docutils.nodes import table
+
+from comradewolf.utils.enums_and_field_dicts import OlapFieldTypes, OlapFollowingCalculations, OlapCalculations, \
+    FilterTypes
 from comradewolf.utils.exceptions import OlapCreationException, OlapTableExists, ConditionFieldsError, OlapException
 from comradewolf.utils.utils import create_field_with_calculation, get_calculation_from_field_name
 
@@ -375,7 +378,7 @@ class OlapTablesCollection(UserDict):
 
         return self.data["dimension_tables"][table_name]["fields"][field_name_alias]["use_sk_for_count"]
 
-    def get_data_table_calculation(self, table_name: str, field_name_alias: str) -> list[str]:
+    def get_data_table_calculation(self, table_name: str, field_name_alias: str) -> str | None:
         """
         Returns calculation for field in table
         :param table_name:
@@ -383,14 +386,14 @@ class OlapTablesCollection(UserDict):
         :return:
         """
 
-        calculation: list[str] = []
+        calculation: str | None = None
 
         for field in self.data["data_tables"][table_name]["fields"]:
 
             field_name, current_calculation = get_calculation_from_field_name(field)
 
             if (field_name == field_name_alias) & (current_calculation is not None):
-                calculation.append(current_calculation)
+                calculation = current_calculation
 
         return calculation
 
@@ -458,6 +461,32 @@ class OlapTablesCollection(UserDict):
         :return:
         """
         return self.data["data_tables"][table_name]["fields"]
+
+    def get_data_tables_with_field(self, alias_field_name) -> None | list[str]:
+        """
+        Get all fact table
+        :param alias_field_name:
+        :return:
+        """
+        table_names: list[str] = []
+
+        for table_name in self.get_data_table_names():
+            if alias_field_name in self.data["data_tables"][table_name]["fields"]:
+                table_names.append(table_name)
+
+        if len(table_names) == 0:
+            return None
+
+        return table_names
+
+    def get_number_of_fields(self, table_name: str) -> int:
+        if table_name in self.get_data_table_names():
+            return len(self.data["data_tables"][table_name]["fields"])
+
+        if table_name in self.get_dimension_table_names():
+            return len(self.data["dimension_tables"][table_name]["fields"])
+
+        raise OlapException(f"No table {table_name}")
 
 
 class OlapFrontend(UserDict):
@@ -826,3 +855,53 @@ class ShortTablesCollectionForSelect(UserDict):
         :return:
         """
         return self.data[table_name]["self_where"]
+
+
+class TableForFilter(UserDict):
+    """
+    Structure to create select for filters
+    """
+    def __init__(self, table_name: str, field_alias_name: str, is_distinct: bool, number_of_select_fields: int):
+        """
+
+        :param table_name:
+        :param field_alias_name:
+        :param is_distinct:
+        :param number_of_select_fields:
+        """
+        structure = {
+            "table_name": table_name,
+            "field_alias": field_alias_name,
+            "is_distinct": is_distinct,
+            "all_select_fields": number_of_select_fields,
+        }
+        super().__init__(structure)
+
+
+class OlapFilterFrontend(UserDict):
+    """
+    Frontend to backend converter for filter-helpers
+    """
+    def __init__(self, frontend_data: dict):
+        if "SELECT_DISTINCT" not in frontend_data:
+            raise OlapException("No SELECT DISTINCT field in frontend")
+
+        field_name = frontend_data["SELECT_DISTINCT"]["field_name"]
+
+        if "type" not in frontend_data["SELECT_DISTINCT"]:
+            raise OlapException("No valid FilterTypes in frontend")
+
+        select_type = frontend_data["SELECT_DISTINCT"]["type"]
+
+        all_select_types = [e.value for e in FilterTypes]
+
+        if select_type not in all_select_types:
+            raise OlapException("No valid FilterTypes in frontend")
+        
+        super().__init__({"field_alias": field_name, "select_type": select_type})
+
+    def get_select_type(self):
+        return self.data["select_type"]
+
+    def get_field_alias_name(self):
+        return self.data["field_alias"]

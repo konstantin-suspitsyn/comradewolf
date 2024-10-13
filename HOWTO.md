@@ -77,3 +77,8 @@ LIKE
 'WHERE': [{'field_name': 'game_name', 'where': '=', 'condition': 'Atom heart'}]}
 ```
 
+### Получение данных для фильтрации, а именно Distinct
+JSON для запроса
+```
+{'SELECT_DISTINCT': {'field_name': 'game_name', 'type': 'all/max-min/'}}
+```
