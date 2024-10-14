@@ -1,8 +1,8 @@
 from comradewolf.universe.olap_language_select_builders import OlapSelectBuilder
-from comradewolf.utils.enums_and_field_dicts import OlapCalculations, OlapFollowingCalculations
+from comradewolf.utils.enums_and_field_dicts import OlapCalculations, OlapFollowingCalculations, FilterTypes
 from comradewolf.utils.exceptions import OlapException
 from comradewolf.utils.olap_data_types import OlapFrontendToBackend, OlapTablesCollection, \
-    ShortTablesCollectionForSelect, TableForFilter
+    ShortTablesCollectionForSelect, TableForFilter, SelectFilter
 from comradewolf.utils.utils import create_field_with_calculation
 
 NO_FACT_TABLES = "No fact tables"
@@ -541,3 +541,39 @@ class OlapService:
                                                     tables_collection.get_number_of_fields(table)))
 
         return tables_filter
+
+    def generate_filter_select(self, tables: list[TableForFilter], field_alias: str, select_type: str,
+                               tables_collection: OlapTablesCollection) -> SelectFilter:
+        """
+        Generates select for frontend filters
+        :param tables_collection:
+        :param tables:
+        :param field_alias:
+        :param select_type:
+        :return:
+        """
+
+        select_filter = SelectFilter()
+
+        for table in tables:
+
+            table_name: str = table.get_table_name()
+            number_of_fields: int = table.get_number_of_fields()
+
+            backend_field = tables_collection.get_backend_field_name(table, field_alias)
+
+            select_statement: str
+
+            if select_type == FilterTypes.ALL.value:
+                select_statement = self.olap_select_builder.get_select_fiter_all(backend_field)
+            elif select_type == FilterTypes.MAX_MIN.value:
+                select_statement = self.olap_select_builder.get_select_fiter_max_min(backend_field)
+            else:
+                raise OlapException(f"Wrong type of select_type: {select_type}")
+
+            sql = f"{select_statement} FROM {table}"
+
+            select_filter.add_table(table_name, sql, number_of_fields)
+
+
+        return select_filter

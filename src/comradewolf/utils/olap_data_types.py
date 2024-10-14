@@ -873,9 +873,16 @@ class TableForFilter(UserDict):
             "table_name": table_name,
             "field_alias": field_alias_name,
             "is_distinct": is_distinct,
-            "all_select_fields": number_of_select_fields,
+            "fields_number": number_of_select_fields,
         }
         super().__init__(structure)
+
+    def get_table_name(self):
+        return self.data["table_name"]
+
+    def get_number_of_fields(self):
+        return self.data["fields_number"]
+
 
 
 class OlapFilterFrontend(UserDict):
@@ -905,3 +912,29 @@ class OlapFilterFrontend(UserDict):
 
     def get_field_alias_name(self):
         return self.data["field_alias"]
+
+
+class SelectFilter(UserDict):
+    """
+    Class for select filter sql
+    Format:
+    }
+        "table_name": {
+            "sql": SQL_STRING,
+            "fields_no": number of fields in table
+        }
+    }
+    """
+
+    def add_table(self, table_name: str, sql: str, field_no: int) -> None:
+        """
+        Adds table to structure
+        :param table_name:
+        :param sql:
+        :param field_no:
+        :return:
+        """
+        self.data[table_name] = {
+            "sql": sql,
+            "all_fields": field_no,
+        }
