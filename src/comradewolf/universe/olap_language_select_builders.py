@@ -77,6 +77,24 @@ class OlapSelectBuilder(ABC):
         """
         pass
 
+    @staticmethod
+    def get_select_fiter_all(backend_name: str) -> str:
+        """
+        Returns select for all distinct values
+        :param backend_name: field name
+        :return:
+        """
+        pass
+
+    @staticmethod
+    def get_select_fiter_max_min(backend_name: str) -> str:
+        """
+        Returns select for max and min values
+        :param backend_name: field name
+        :return:
+        """
+        pass
+
 
 class OlapPostgresSelectBuilder(OlapSelectBuilder):
     def generate_structure_for_dimension_table(self, frontend_fields: OlapFrontendToBackend,
@@ -347,3 +365,21 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
             condition = current_placeholder.format(front_condition)
 
         return condition
+
+    @staticmethod
+    def get_select_fiter_all(backend_name: str) -> str:
+        """
+        Returns select for all distinct values
+        :param backend_name: field name
+        :return:
+        """
+        return f"SELECT DISTINCT {backend_name}"
+
+    @staticmethod
+    def get_select_fiter_max_min(backend_name: str) -> str:
+        """
+        Returns select for max and min values
+        :param backend_name: field name
+        :return:
+        """
+        return f"SELECT MIN({backend_name}) as min_value, MAX({backend_name}) as max_value"
