@@ -19,8 +19,6 @@ def test_frontend_view() -> None:
     for front_key in front_keys:
         assert front_key in olap_frontend
 
-    print(olap_frontend)
-
     assert {'release_date': {'field_type': 'dimension', 'front_name': 'Release date', 'data_type': 'date'},
             'english': {'field_type': 'dimension', 'front_name': 'Has english', 'data_type': 'text'},
             'achievements': {'field_type': 'value', 'front_name': 'Amount of achievements', 'data_type': 'number'},
