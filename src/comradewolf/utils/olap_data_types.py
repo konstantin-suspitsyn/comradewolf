@@ -938,3 +938,6 @@ class SelectFilter(UserDict):
             "sql": sql,
             "all_fields": field_no,
         }
+
+    def get_sql(self, table_name: str) -> str:
+        return self.data[table_name]["sql"]

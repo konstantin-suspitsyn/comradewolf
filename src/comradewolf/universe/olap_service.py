@@ -560,7 +560,7 @@ class OlapService:
             table_name: str = table.get_table_name()
             number_of_fields: int = table.get_number_of_fields()
 
-            backend_field = tables_collection.get_backend_field_name(table, field_alias)
+            backend_field = tables_collection.get_backend_field_name(table_name, field_alias)
 
             select_statement: str
 
@@ -571,7 +571,7 @@ class OlapService:
             else:
                 raise OlapException(f"Wrong type of select_type: {select_type}")
 
-            sql = f"{select_statement} FROM {table}"
+            sql = f"{select_statement} FROM {table_name}"
 
             select_filter.add_table(table_name, sql, number_of_fields)
 
