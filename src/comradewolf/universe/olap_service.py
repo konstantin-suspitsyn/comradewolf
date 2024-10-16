@@ -1,8 +1,10 @@
+from select import select
+
 from comradewolf.universe.olap_language_select_builders import OlapSelectBuilder
 from comradewolf.utils.enums_and_field_dicts import OlapCalculations, OlapFollowingCalculations, FilterTypes
 from comradewolf.utils.exceptions import OlapException
 from comradewolf.utils.olap_data_types import OlapFrontendToBackend, OlapTablesCollection, \
-    ShortTablesCollectionForSelect, TableForFilter, SelectFilter
+    ShortTablesCollectionForSelect, TableForFilter, SelectFilter, OlapFilterFrontend, SelectCollection
 from comradewolf.utils.utils import create_field_with_calculation
 
 NO_FACT_TABLES = "No fact tables"
@@ -97,8 +99,6 @@ class OlapService:
         :param tables_collection: OlapTablesCollectionForSelect
         :return: ShortTablesCollectionForSelect but changed
         """
-
-        short_tables_collection: ShortTablesCollectionForSelect = short_tables_collection.copy()
 
         list_of_fact_tables: list = list(short_tables_collection.keys())
 
@@ -377,14 +377,15 @@ class OlapService:
 
         return short_tables_collection, True
 
-    def generate_selects_from_collection(self, short_tables_collection: ShortTablesCollectionForSelect) -> dict:
+    def generate_selects_from_collection(self, short_tables_collection: ShortTablesCollectionForSelect) \
+            -> SelectCollection:
         """
         Generates select structure from short tables collection
         :param short_tables_collection: should be created from self.generate_pre_select_collection()
         :return:
         """
 
-        temp_structure: dict = {}
+        temp_structure: SelectCollection = SelectCollection()
 
         for table in short_tables_collection:
             # Fields to put after select. Separate by comma
@@ -405,15 +406,13 @@ class OlapService:
             sql = self.generate_select_query(select_list, select_for_group_by, joins, where, has_calculation, table,
                                              not_selected_fields_no)
 
-            temp_structure[table] = {}
-            temp_structure[table]["sql"] = sql
-            temp_structure[table]["not_selected_fields_no"] = not_selected_fields_no
+            temp_structure.add_table(table, sql, not_selected_fields_no)
 
         return temp_structure
 
     def generate_structure_for_each_piece_of_join(self, short_tables_collection: ShortTablesCollectionForSelect,
                                                   table: str) -> tuple[list[str], list[str], dict, list[str], bool]:
-
+        #TODO: rename function
         """
         :param short_tables_collection:
         :param table:
@@ -575,5 +574,59 @@ class OlapService:
 
             select_filter.add_table(table_name, sql, number_of_fields)
 
+
+        return select_filter
+
+    def generate_select_for_dimension(self, table_name: str, select_list: list[str], select_for_group_by: list[str],
+                                      where: list[str], has_calculation: bool) -> SelectCollection:
+        select_collection: SelectCollection = SelectCollection()
+
+        sql = self.olap_select_builder.generate_select_query(select_list, select_for_group_by, {}, where,
+        has_calculation, table_name, 0)
+
+        select_collection.add_table(table_name, sql, 0)
+
+        return select_collection
+
+    def select_data(self, frontend_data: OlapFrontendToBackend, tables_collection: OlapTablesCollection) \
+            -> SelectCollection:
+        """
+        Starts all necessary functions to satisfy frontend query
+        :param frontend_data: OlapFilterFrontend with data from frontend
+        :param tables_collection: OlapTablesCollection from OlapStructureGenerator
+        :return: selects in form of SelectCollection.class
+        """
+        has_fact_table: bool = self.fact_table_in_query(frontend_data, tables_collection)
+
+        if has_fact_table:
+            short_tables_collection_for_select: ShortTablesCollectionForSelect = \
+                self.generate_pre_select_collection(frontend_data, tables_collection)
+            return self.generate_selects_from_collection(short_tables_collection_for_select)
+
+
+        if not has_fact_table:
+            table_name, select_list, select_for_group_by, where, has_calculation \
+                = self.generate_structure_for_dimension_table(frontend_data, tables_collection)
+
+            return self.generate_select_for_dimension(table_name, select_list, select_for_group_by, where,
+                                                      has_calculation)
+
+
+
+    def select_filter_for_frontend(self, frontend_data: OlapFilterFrontend, tables_collection: OlapTablesCollection) \
+            -> SelectFilter:
+        """
+        Starts all necessary functions to get select statement for frontend filters
+        :param frontend_data: OlapFilterFrontend with data from frontend
+        :param tables_collection: OlapTablesCollection from OlapStructureGenerator
+        :return: selects in form of SelectFilter.class
+        """
+        all_tables_with_field:  list[str] = self.get_tables_with_field(frontend_data.get_field_alias_name(),
+                                                                       tables_collection)
+        tables: list[TableForFilter] = self.get_tables_for_filter(frontend_data.get_field_alias_name(),
+                                                                  all_tables_with_field, tables_collection)
+
+        select_filter: SelectFilter = self.generate_filter_select(tables, frontend_data.get_field_alias_name(),
+                                                                  frontend_data.get_select_type(), tables_collection)
 
         return select_filter
