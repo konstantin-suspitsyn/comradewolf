@@ -941,3 +941,25 @@ class SelectFilter(UserDict):
 
     def get_sql(self, table_name: str) -> str:
         return self.data[table_name]["sql"]
+
+
+
+class SelectCollection(UserDict):
+    """
+    Class for selects
+
+    Structure:
+    {
+        table: {
+            "sql": sql_query
+            "not_selected_fields_no": int_not_selected_fields
+        }
+    }
+
+    """
+
+    def add_table(self, table_name: str, sql_query: str, not_selected_fields_no: int) -> None:
+        self.data[table_name] = {
+            "sql": sql_query,
+            "not_selected_fields_no": not_selected_fields_no,
+        }

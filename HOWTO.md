@@ -82,3 +82,7 @@ JSON для запроса
 ```
 {'SELECT_DISTINCT': {'field_name': 'game_name', 'type': 'all/max-min/'}}
 ```
+Процедура запуска осуществляется с помощью функции
+```
+OlapService.select_filter_for_frontend(OlapFilterFrontend, OlapTablesCollection)
+```
