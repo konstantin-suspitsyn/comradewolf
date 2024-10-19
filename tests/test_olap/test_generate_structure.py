@@ -66,7 +66,7 @@ def test_should_be_only_base_table_with_group_by():
 
     for item in ['base_sales.year_f as "year"', 'base_sales.pcs_f as "pcs"',
                  'sum(base_sales.achievements_f) as "achievements__sum"', 'sum(base_sales.pcs_f) as "pcs__sum"',
-                 'sum(base_sales.price_f) as "price__sum"', 'dim_game.bk_game_id_f as bk_id_game']:
+                 'sum(base_sales.price_f) as "price__sum"', 'dim_game.bk_game_id_f as "bk_id_game"']:
         assert item in select_list
 
     assert len(select_for_group_by) == 3
@@ -287,8 +287,8 @@ def test_should_be_only_base_table_no_group_by_join():
 
     assert len(select_list) == 4
 
-    for item in ['base_sales.year_f as "year"', 'base_sales.pcs_f as "pcs"', 'dim_game.bk_game_id_f as bk_id_game',
-                 'dim_publisher.publisher_name_field_f as publisher_name']:
+    for item in ['base_sales.year_f as "year"', 'base_sales.pcs_f as "pcs"', 'dim_game.bk_game_id_f as "bk_id_game"',
+                 'dim_publisher.publisher_name_field_f as "publisher_name"']:
         assert item in select_list
 
     assert len(select_for_group_by) == 0
@@ -317,7 +317,7 @@ def test_base_table_wth_gb_agg_no_gb_join():
     assert len(select_list) == 4
 
     for item in ['base_sales.year_f as "year"', 'sum(base_sales.sales_rub_f) as "sales_rub__sum"',
-                 'sum(base_sales.pcs_f) as "pcs__sum"', 'dim_publisher.publisher_name_field_f as publisher_name']:
+                 'sum(base_sales.pcs_f) as "pcs__sum"', 'dim_publisher.publisher_name_field_f as "publisher_name"']:
         assert item in select_list
 
     assert len(select_for_group_by) == 2
@@ -336,7 +336,7 @@ def test_base_table_wth_gb_agg_no_gb_join():
     assert len(select_list_y_p) == 4
 
     for item in ['g_by_y_p.year_f as "year"', 'g_by_y_p.sum_sales_rub_f as "sales_rub__sum"',
-                 'g_by_y_p.sum_pcs_f as "pcs__sum"', 'dim_publisher.publisher_name_field_f as publisher_name']:
+                 'g_by_y_p.sum_pcs_f as "pcs__sum"', 'dim_publisher.publisher_name_field_f as "publisher_name"']:
         assert item in select_list_y_p
 
     assert len(select_for_group_by_y_p) == 0
@@ -356,7 +356,7 @@ def test_base_table_wth_gb_agg_no_gb_join():
     assert len(select_list_y_ym_p) == 4
 
     for item in ['g_by_y_ym_p.year_f as "year"', 'sum(g_by_y_ym_p.sum_sales_rub_f) as "sales_rub__sum"',
-                 'sum(g_by_y_ym_p.sum_pcs_f) as "pcs__sum"', 'dim_publisher.publisher_name_field_f as publisher_name']:
+                 'sum(g_by_y_ym_p.sum_pcs_f) as "pcs__sum"', 'dim_publisher.publisher_name_field_f as "publisher_name"']:
         assert item in select_list_y_ym_p
 
     assert len(select_for_group_by_y_ym_p) == 2
@@ -574,7 +574,7 @@ def test_where_with_agg_in_join():
 
     for item in ['base_sales.year_f as "year"', 'base_sales.pcs_f as "pcs"',
                  'sum(base_sales.achievements_f) as "achievements__sum"', 'sum(base_sales.pcs_f) as "pcs__sum"',
-                 'sum(base_sales.price_f) as "price__sum"', 'dim_game.bk_game_id_f as bk_id_game']:
+                 'sum(base_sales.price_f) as "price__sum"', 'dim_game.bk_game_id_f as "bk_id_game"']:
         assert item in select_list
 
     assert len(select_for_group_by) == 3

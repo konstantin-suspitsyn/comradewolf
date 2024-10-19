@@ -952,17 +952,25 @@ class SelectCollection(UserDict):
     {
         table: {
             "sql": sql_query
-            "not_selected_fields_no": int_not_selected_fields
+            "not_selected_fields_no": int_not_selected_fields,
+            "has_group_by": bool,
         }
     }
 
     """
 
-    def add_table(self, table_name: str, sql_query: str, not_selected_fields_no: int) -> None:
+    def add_table(self, table_name: str, sql_query: str, not_selected_fields_no: int, has_group_by: bool) -> None:
         self.data[table_name] = {
             "sql": sql_query,
             "not_selected_fields_no": not_selected_fields_no,
+            "has_group_by": has_group_by,
         }
 
     def get_sql(self, table_name) -> str:
         return self.data[table_name]["sql"]
+
+    def get_not_selected_fields_no(self, table_name) -> int:
+        return self.data[table_name]["not_selected_fields_no"]
+
+    def get_has_group_by(self, table_name) -> bool:
+        return self.data[table_name]["has_group_by"]
