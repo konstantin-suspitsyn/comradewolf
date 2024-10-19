@@ -30,8 +30,10 @@ class OlapService:
 
         all_fact_fields: list[str] = []
 
-        for fact_table in tables_collection.get_fact_tables_collection():
-            for field in fact_table["fields"]:
+        fact_tables = tables_collection.get_fact_tables_collection()
+
+        for fact_table in fact_tables:
+            for field in fact_tables[fact_table]["fields"]:
                 all_fact_fields.append(field)
 
         for field in frontend_fields.get_select():

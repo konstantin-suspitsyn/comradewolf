@@ -963,3 +963,6 @@ class SelectCollection(UserDict):
             "sql": sql_query,
             "not_selected_fields_no": not_selected_fields_no,
         }
+
+    def get_sql(self, table_name) -> str:
+        return self.data[table_name]["sql"]
