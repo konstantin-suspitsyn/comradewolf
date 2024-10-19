@@ -405,10 +405,10 @@ class OlapService:
 
             not_selected_fields_no = len(short_tables_collection.get_all_selects(table))
 
-            sql = self.generate_select_query(select_list, select_for_group_by, joins, where, has_calculation, table,
-                                             not_selected_fields_no)
+            sql, has_group_by = self.generate_select_query(select_list, select_for_group_by, joins, where,
+                                                           has_calculation, table, not_selected_fields_no)
 
-            temp_structure.add_table(table, sql, not_selected_fields_no)
+            temp_structure.add_table(table, sql, not_selected_fields_no, has_group_by)
 
         return temp_structure
 
@@ -424,7 +424,7 @@ class OlapService:
         return self.olap_select_builder.generate_structure_for_each_fact_table(short_tables_collection, table)
 
     def generate_select_query(self, select_list: list, select_for_group_by: list, joins: dict, where: list,
-                              has_calculation: bool, table_name: str, not_selected_fields_no: int) -> str:
+                              has_calculation: bool, table_name: str, not_selected_fields_no: int) -> tuple[str, bool]:
         """
         Generates select statement ready for database query
         All parameters come from self.generate_structure_for_each_piece_of_join()
@@ -435,7 +435,7 @@ class OlapService:
         :param select_for_group_by: if there is any calculation we need to use this list in group by
         :param joins: tables to be joined
         :param where: list of where conditions
-        :return: select statement
+        :return: select statement and True or false if query has calculation
         """
         return self.olap_select_builder.generate_select_query(select_list, select_for_group_by, joins, where,
                                                               has_calculation, table_name, not_selected_fields_no)
@@ -583,10 +583,10 @@ class OlapService:
                                       where: list[str], has_calculation: bool) -> SelectCollection:
         select_collection: SelectCollection = SelectCollection()
 
-        sql = self.olap_select_builder.generate_select_query(select_list, select_for_group_by, {}, where,
+        sql, has_group_by = self.olap_select_builder.generate_select_query(select_list, select_for_group_by, {}, where,
         has_calculation, table_name, 0)
 
-        select_collection.add_table(table_name, sql, 0)
+        select_collection.add_table(table_name, sql, 0, has_group_by)
 
         return select_collection
 
