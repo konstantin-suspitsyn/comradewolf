@@ -130,7 +130,10 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
             backend_name: str = "{}({}.{})" \
                 .format(field["calculation"], short_table_name,
                         tables_collection.get_backend_field_name(current_table_name, field["field_name"]))
-            select_list.append(FIELD_NAME_WITH_ALIAS.format(f"{backend_name}", field["field_name"]))
+
+            frontend_name: str = create_field_with_calculation(field["field_name"], field["calculation"])
+
+            select_list.append(FIELD_NAME_WITH_ALIAS.format(f"{backend_name}", frontend_name))
 
             has_calculation = True
 
@@ -153,14 +156,14 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
 
         select_string += "\n\t " + "\n\t,".join(select_list)
         if len(where) > 0:
-            where_string += WHERE + " " + " AND ".join(where)
+            where_string += WHERE + " " + "\n\tAND ".join(where)
 
         if len(joins) > 0:
             for table in joins:
                 join_string += f"\nINNER JOIN {table} \n\t{joins[table]}"
 
         if len(select_for_group_by) > 0:
-            group_by_string += "\n\t" + "\n\t,".join(select_for_group_by)
+            group_by_string += "\n\t " + "\n\t,".join(select_for_group_by)
 
         sql += select_string
 

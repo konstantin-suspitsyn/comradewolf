@@ -44,7 +44,7 @@ def test_should_be_only_base_table_wth_group_by() -> None:
 
     assert len(select_list) == 2
     assert has_calculation is True
-    for item in ['dim_game.bk_game_id_f as "bk_id_game"', 'count(dim_game.bk_game_id_f) as "bk_id_game"']:
+    for item in ['dim_game.bk_game_id_f as "bk_id_game"', 'count(dim_game.bk_game_id_f) as "bk_id_game__count"']:
          assert item in select_list
     assert select_list[0] == 'dim_game.bk_game_id_f as "bk_id_game"'
     assert table_name == 'olap_test.games_olap.dim_game'
@@ -63,7 +63,7 @@ def test_should_be_only_base_table_wth_where() -> None:
 
     assert len(select_list) == 2
     assert has_calculation is True
-    for item in ['dim_game.bk_game_id_f as "bk_id_game"', 'count(dim_game.bk_game_id_f) as "bk_id_game"']:
+    for item in ['dim_game.bk_game_id_f as "bk_id_game"', 'count(dim_game.bk_game_id_f) as "bk_id_game__count"']:
          assert item in select_list
     assert select_list[0] == 'dim_game.bk_game_id_f as "bk_id_game"'
     assert table_name == 'olap_test.games_olap.dim_game'
