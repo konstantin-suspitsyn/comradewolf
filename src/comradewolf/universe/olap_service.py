@@ -379,11 +379,12 @@ class OlapService:
 
         return short_tables_collection, True
 
-    def generate_selects_from_collection(self, short_tables_collection: ShortTablesCollectionForSelect) \
-            -> SelectCollection:
+    def generate_selects_from_collection(self, short_tables_collection: ShortTablesCollectionForSelect,
+                                         add_order_by: bool)  -> SelectCollection:
         """
         Generates select structure from short tables collection
         :param short_tables_collection: should be created from self.generate_pre_select_collection()
+        :param add_order_by: add order by to fact query or not
         :return:
         """
 
@@ -399,21 +400,25 @@ class OlapService:
             joins: dict
             # Add where and put AND between fields
             where: list[str]
+            # Order by list
+            order_by: list[str]
 
-            select_list, select_for_group_by, joins, where, has_calculation = self \
+            select_list, select_for_group_by, joins, where, order_by, has_calculation = self \
                 .generate_structure_for_each_piece_of_join(short_tables_collection, table)
 
             not_selected_fields_no = len(short_tables_collection.get_all_selects(table))
 
             sql, has_group_by = self.generate_select_query(select_list, select_for_group_by, joins, where,
-                                                           has_calculation, table, not_selected_fields_no)
+                                                           has_calculation, table, order_by, not_selected_fields_no,
+                                                           add_order_by)
 
             temp_structure.add_table(table, sql, not_selected_fields_no, has_group_by)
 
         return temp_structure
 
     def generate_structure_for_each_piece_of_join(self, short_tables_collection: ShortTablesCollectionForSelect,
-                                                  table: str) -> tuple[list[str], list[str], dict, list[str], bool]:
+                                                  table: str) \
+            -> tuple[list[str], list[str], dict, list[str], list[str], bool]:
         #TODO: rename function
         """
         :param short_tables_collection:
@@ -424,10 +429,12 @@ class OlapService:
         return self.olap_select_builder.generate_structure_for_each_fact_table(short_tables_collection, table)
 
     def generate_select_query(self, select_list: list, select_for_group_by: list, joins: dict, where: list,
-                              has_calculation: bool, table_name: str, not_selected_fields_no: int) -> tuple[str, bool]:
+                              has_calculation: bool, table_name: str, order_by: list[str], not_selected_fields_no: int,
+                              add_order_by: bool) -> tuple[str, bool]:
         """
         Generates select statement ready for database query
         All parameters come from self.generate_structure_for_each_piece_of_join()
+        :param order_by: order_by fields
         :param has_calculation: If true, our select needs GROUP BY with select_for_group_by
         :param not_selected_fields_no:
         :param table_name: table name for FROM
@@ -435,10 +442,12 @@ class OlapService:
         :param select_for_group_by: if there is any calculation we need to use this list in group by
         :param joins: tables to be joined
         :param where: list of where conditions
+        :param add_order_by: add order by to fact query or not
         :return: select statement and True or false if query has calculation
         """
         return self.olap_select_builder.generate_select_query(select_list, select_for_group_by, joins, where,
-                                                              has_calculation, table_name, not_selected_fields_no)
+                                                              has_calculation, table_name, order_by,
+                                                              not_selected_fields_no, add_order_by)
 
     @staticmethod
     def has_fact_table_fields(frontend_fields: OlapFrontendToBackend, tables_collection: OlapTablesCollection) -> bool:
@@ -580,22 +589,23 @@ class OlapService:
         return select_filter
 
     def generate_select_for_dimension(self, table_name: str, select_list: list[str], select_for_group_by: list[str],
-                                      where: list[str], has_calculation: bool) -> SelectCollection:
+                                      where: list[str], has_calculation: bool, add_order_by: bool) -> SelectCollection:
         select_collection: SelectCollection = SelectCollection()
 
         sql, has_group_by = self.olap_select_builder.generate_select_query(select_list, select_for_group_by, {}, where,
-        has_calculation, table_name, 0)
+        has_calculation, table_name, [], 0, add_order_by)
 
         select_collection.add_table(table_name, sql, 0, has_group_by)
 
         return select_collection
 
-    def select_data(self, frontend_data: OlapFrontendToBackend, tables_collection: OlapTablesCollection) \
-            -> SelectCollection:
+    def select_data(self, frontend_data: OlapFrontendToBackend, tables_collection: OlapTablesCollection,
+                    add_order_by: bool = False) -> SelectCollection:
         """
         Starts all necessary functions to satisfy frontend query
         :param frontend_data: OlapFilterFrontend with data from frontend
         :param tables_collection: OlapTablesCollection from OlapStructureGenerator
+        :param add_order_by: add order by to fact query or not
         :return: selects in form of SelectCollection.class
         """
         has_fact_table: bool = self.fact_table_in_query(frontend_data, tables_collection)
@@ -603,7 +613,7 @@ class OlapService:
         if has_fact_table:
             short_tables_collection_for_select: ShortTablesCollectionForSelect = \
                 self.generate_pre_select_collection(frontend_data, tables_collection)
-            return self.generate_selects_from_collection(short_tables_collection_for_select)
+            return self.generate_selects_from_collection(short_tables_collection_for_select, add_order_by)
 
 
         if not has_fact_table:
@@ -611,7 +621,7 @@ class OlapService:
                 = self.generate_structure_for_dimension_table(frontend_data, tables_collection)
 
             return self.generate_select_for_dimension(table_name, select_list, select_for_group_by, where,
-                                                      has_calculation)
+                                                      has_calculation, add_order_by)
 
 
 

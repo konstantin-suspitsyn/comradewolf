@@ -15,9 +15,9 @@ setup(
 
     name="comradewolf",
 
-    version="0.0.1b1",
+    version="0.0.2a1",
 
-    description="Helps build SQL queries without code",
+    description="Core to make OLAP-like engine. Creates SQL queries based on imported meta-data",
 
     long_description=long_description,
 
@@ -45,8 +45,7 @@ setup(
 
     packages=["comradewolf",
               "comradewolf.universe",
-              "comradewolf.utils",
-              "comradewolf.tests",],
+              "comradewolf.utils",],
 
     install_requires=["toml>=0.10.2",
                       "typing_extensions==4.10.0",],

@@ -25,10 +25,12 @@ class OlapSelectBuilder(ABC):
 
     @abstractmethod
     def generate_select_query(self, select_list: list, select_for_group_by: list, joins: dict, where: list,
-                              has_calculation: bool, table_name: str, not_selected_fields_no: int) -> tuple[str, bool]:
+                              has_calculation: bool, table_name: str, order_by: list[str], not_selected_fields_no: int,
+                              add_order_by: bool) -> tuple[str, bool]:
         """
         Generates select statement ready for database query
         All parameters come from self.generate_structure_for_each_piece_of_join()
+        :param order_by: list of order by fields
         :param has_calculation: If true, our select needs GROUP BY with select_for_group_by
         :param not_selected_fields_no:
         :param table_name: table name for FROM
@@ -36,6 +38,7 @@ class OlapSelectBuilder(ABC):
         :param select_for_group_by: if there is any calculation we need to use this list in group by
         :param joins: tables to be joined
         :param where: list of where conditions
+        add_order_by
         :return: select statement and bool if it has calculation; Has calculation bool is used for optimizer engine
         """
         pass
@@ -43,7 +46,7 @@ class OlapSelectBuilder(ABC):
     @abstractmethod
     def generate_structure_for_each_fact_table(self, short_tables_collection: ShortTablesCollectionForSelect,
                                                table_name: str) \
-            -> tuple[list[str], list[str], dict, list[str], bool]:
+            -> tuple[list[str], list[str], dict, list[str], list[str], bool]:
         """
         Generates set of variables for self.generate_select_query()
         :param table_name:
@@ -147,7 +150,8 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
         return current_table_name, select_list, select_for_group_by, where, has_calculation
 
     def generate_select_query(self, select_list: list, select_for_group_by: list, joins: dict, where: list,
-                              has_calculation: bool, table_name: str, not_selected_fields_no: int) -> tuple[str, bool]:
+                              has_calculation: bool, table_name: str, order_by: list[str], not_selected_fields_no: int,
+                              add_order_by: bool)  -> tuple[str, bool]:
         sql: str = SELECT
         select_string: str = ""
         join_string: str = ""
@@ -180,12 +184,15 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
         if len(group_by_string) > 0:
             sql += f"\n{GROUP_BY}{group_by_string}"
             has_group_by = True
+        if add_order_by:
+            order_by_string = ", ".join(order_by)
+            sql += f"\nORDER BY {order_by_string}"
 
         return sql, has_group_by
 
     def generate_structure_for_each_fact_table(self, short_tables_collection: ShortTablesCollectionForSelect,
                                                table_name: str) \
-            -> tuple[list[str], list[str], dict, list[str], bool]:
+            -> tuple[list[str], list[str], dict, list[str], list[str], bool]:
         # alias table name
         short_table_name: str = table_name.split(".")[-1]
         # Fields to put after select. Separate by comma
@@ -199,6 +206,8 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
         where: list[str] = []
         # Has calculation
         has_calculation: bool = False
+        # Order by list
+        order_by: list[str] = []
 
         selects_inner_structure: list = short_tables_collection.get_selects(table_name)
         aggregation_structure: list = short_tables_collection.get_aggregations_without_join(table_name)
@@ -214,6 +223,7 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
             frontend_name: str = field["frontend_field"]
 
             select_list.append(FIELD_NAME_WITH_ALIAS.format(backend_name, frontend_name))
+            order_by.append(backend_name)
 
             if (len(aggregation_structure) > 0) or (len(aggregation_join) > 0):
                 select_for_group_by.append(backend_name)
@@ -310,7 +320,7 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
                                                    condition[field_name]["where"],
                                                    condition[field_name]["condition"]))
 
-        return select_list, select_for_group_by, joins, where, has_calculation
+        return select_list, select_for_group_by, joins, where, order_by, has_calculation
 
     def generate_where_condition(self, field_alias: str, type_of_where: str, front_condition: list | str | float | int,
                                  data_type: str) -> str:

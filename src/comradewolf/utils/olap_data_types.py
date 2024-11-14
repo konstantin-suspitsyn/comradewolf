@@ -942,6 +942,9 @@ class SelectFilter(UserDict):
     def get_sql(self, table_name: str) -> str:
         return self.data[table_name]["sql"]
 
+    def get_not_selected_fields(self, table_name: str) -> int:
+        return self.data[table_name]["all_fields"]
+
 
 
 class SelectCollection(UserDict):

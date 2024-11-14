@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "comradewolf"
-version = "0.0.1b1"
+version = "0.0.2b1"
 authors = [
   { name="Konstantin Suspitsyn", email="konstantin.suspitsyn@xmail.ru" },
 ]
-description = "Helps build SQL queries without code"
+description = "Core to make OLAP-like engine. Creates SQL queries based on imported meta-data"
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [

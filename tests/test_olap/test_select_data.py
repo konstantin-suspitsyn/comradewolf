@@ -157,8 +157,8 @@ def test_group_by_also_in_agg() -> None:
 
 if __name__ == "__main__":
     test_should_be_only_base_table_no_group_by()
-    test_base_table_with_join_no_where()
-    test_group_by_read_no_where()
-    test_base_table_with_join_wth_where()
-    test_one_dimension_count()
-    test_group_by_also_in_agg()
+    # test_base_table_with_join_no_where()
+    # test_group_by_read_no_where()
+    # test_base_table_with_join_wth_where()
+    # test_one_dimension_count()
+    # test_group_by_also_in_agg()

@@ -36,7 +36,7 @@ def test_should_be_only_base_table_no_group_by() -> None:
         = olap_service.generate_pre_select_collection(frontend_to_backend_type,
                                                       olap_structure_generator.get_tables_collection())
 
-    select_list, select_for_group_by, joins, where, has_calculation \
+    select_list, select_for_group_by, joins, where, order_by, has_calculation \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, BASE_TABLE_NAME)
 
     assert len(select_list) == 2
@@ -59,7 +59,7 @@ def test_should_be_only_base_table_with_group_by():
         = olap_service.generate_pre_select_collection(frontend_to_backend_type,
                                                       olap_structure_generator.get_tables_collection())
 
-    select_list, select_for_group_by, joins, where, has_calculation \
+    select_list, select_for_group_by, joins, where, order_by, has_calculation \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, BASE_TABLE_NAME)
 
     assert len(select_list) == 6
@@ -94,7 +94,7 @@ def test_base_agg_wth_agg():
                                                       olap_structure_generator.get_tables_collection())
 
     # BASE_TABLE_NAME
-    select_list, select_for_group_by, joins, where, has_calculation \
+    select_list, select_for_group_by, joins, where, order_by, has_calculation \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, BASE_TABLE_NAME)
 
     assert len(select_list) == 3
@@ -114,7 +114,8 @@ def test_base_agg_wth_agg():
     assert len(where) == 0
 
     # G_BY_Y_YM_TABLE_NAME
-    select_list_g_by_y_ym, select_for_group_by_g_by_y_ym, joins_g_by_y_ym, where_g_by_y_ym, has_calculation_g_by_y_ym \
+    select_list_g_by_y_ym, select_for_group_by_g_by_y_ym, joins_g_by_y_ym, where_g_by_y_ym, order_by, \
+        has_calculation_g_by_y_ym \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, G_BY_Y_YM_TABLE_NAME)
 
     assert len(select_list_g_by_y_ym) == 3
@@ -131,7 +132,7 @@ def test_base_agg_wth_agg():
     assert len(where_g_by_y_ym) == 0
 
     # G_BY_Y_TABLE_NAME
-    select_list_g_by_y, select_for_group_by_g_by_y, joins_g_by_y, where_g_by_y, has_calculation_g_by_y \
+    select_list_g_by_y, select_for_group_by_g_by_y, joins_g_by_y, where_g_by_y, order_by, has_calculation_g_by_y \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, G_BY_Y_TABLE_NAME)
 
     assert len(select_list_g_by_y) == 3
@@ -148,7 +149,7 @@ def test_base_agg_wth_agg():
     assert len(where_g_by_y) == 0
 
     # G_BY_Y_YM_P_TABLE_NAME
-    select_list_y_ym_p, select_for_group_by_y_ym_p, joins_g_y_ym_p, where_g_y_ym_p, has_calculation_g_y_ym_p \
+    select_list_y_ym_p, select_for_group_by_y_ym_p, joins_g_y_ym_p, where_g_y_ym_p, order_by, has_calculation_g_y_ym_p \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, G_BY_Y_YM_P_TABLE_NAME)
 
     assert len(select_list_y_ym_p) == 3
@@ -165,7 +166,7 @@ def test_base_agg_wth_agg():
     assert len(where_g_y_ym_p) == 0
 
     # G_BY_Y_P_TABLE_NAME
-    select_list_y_p, select_for_group_by_y_p, joins_g_y_p, where_g_y_p, has_calculation_g_y_p \
+    select_list_y_p, select_for_group_by_y_p, joins_g_y_p, where_g_y_p, order_by, has_calculation_g_y_p \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, G_BY_Y_P_TABLE_NAME)
 
     assert len(select_list_y_p) == 3
@@ -192,7 +193,7 @@ def test_one_value_in_aggregate():
                                                       olap_structure_generator.get_tables_collection())
 
     # BASE_TABLE_NAME
-    select_list, select_for_group_by, joins, where, has_calculation \
+    select_list, select_for_group_by, joins, where, order_by, has_calculation \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, BASE_TABLE_NAME)
 
     assert len(select_list) == 1
@@ -208,7 +209,8 @@ def test_one_value_in_aggregate():
     assert len(where) == 0
 
     # G_BY_Y_YM_TABLE_NAME
-    select_list_g_by_y_ym, select_for_group_by_g_by_y_ym, joins_g_by_y_ym, where_g_by_y_ym, has_calculation_g_by_y_ym \
+    select_list_g_by_y_ym, select_for_group_by_g_by_y_ym, joins_g_by_y_ym, where_g_by_y_ym, order_by, \
+        has_calculation_g_by_y_ym \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, G_BY_Y_YM_TABLE_NAME)
 
     assert len(select_list_g_by_y_ym) == 1
@@ -224,7 +226,7 @@ def test_one_value_in_aggregate():
     assert len(where_g_by_y_ym) == 0
 
     # G_BY_Y_TABLE_NAME
-    select_list_g_by_y, select_for_group_by_g_by_y, joins_g_by_y, where_g_by_y, has_calculation_g_by_y \
+    select_list_g_by_y, select_for_group_by_g_by_y, joins_g_by_y, where_g_by_y, order_by, has_calculation_g_by_y \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, G_BY_Y_TABLE_NAME)
 
     assert len(select_list_g_by_y) == 1
@@ -240,7 +242,7 @@ def test_one_value_in_aggregate():
     assert len(where_g_by_y) == 0
 
     # G_BY_Y_YM_P_TABLE_NAME
-    select_list_y_ym_p, select_for_group_by_y_ym_p, joins_g_y_ym_p, where_g_y_ym_p, has_calculation_g_y_ym_p \
+    select_list_y_ym_p, select_for_group_by_y_ym_p, joins_g_y_ym_p, where_g_y_ym_p, order_by, has_calculation_g_y_ym_p \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, G_BY_Y_YM_P_TABLE_NAME)
 
     assert len(select_list_y_ym_p) == 1
@@ -256,7 +258,7 @@ def test_one_value_in_aggregate():
     assert len(where_g_y_ym_p) == 0
 
     # G_BY_Y_P_TABLE_NAME
-    select_list_y_p, select_for_group_by_y_p, joins_g_y_p, where_g_y_p, has_calculation_g_y_p \
+    select_list_y_p, select_for_group_by_y_p, joins_g_y_p, where_g_y_p, order_by, has_calculation_g_y_p \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, G_BY_Y_P_TABLE_NAME)
 
     assert len(select_list_y_p) == 1
@@ -282,7 +284,7 @@ def test_should_be_only_base_table_no_group_by_join():
                                                       olap_structure_generator.get_tables_collection())
 
     # BASE_TABLE_NAME
-    select_list, select_for_group_by, joins, where, has_calculation \
+    select_list, select_for_group_by, joins, where, order_by, has_calculation \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, BASE_TABLE_NAME)
 
     assert len(select_list) == 4
@@ -311,7 +313,7 @@ def test_base_table_wth_gb_agg_no_gb_join():
                                                       olap_structure_generator.get_tables_collection())
 
     # BASE_TABLE_NAME
-    select_list, select_for_group_by, joins, where, has_calculation \
+    select_list, select_for_group_by, joins, where, order_by, has_calculation \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, BASE_TABLE_NAME)
 
     assert len(select_list) == 4
@@ -330,7 +332,7 @@ def test_base_table_wth_gb_agg_no_gb_join():
     assert len(where) == 0
 
     # G_BY_Y_P_TABLE_NAME
-    select_list_y_p, select_for_group_by_y_p, joins_g_y_p, where_g_y_p, has_calculation_g_y_p \
+    select_list_y_p, select_for_group_by_y_p, joins_g_y_p, where_g_y_p, order_by, has_calculation_g_y_p \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, G_BY_Y_P_TABLE_NAME)
 
     assert len(select_list_y_p) == 4
@@ -350,7 +352,7 @@ def test_base_table_wth_gb_agg_no_gb_join():
 
     # G_BY_Y_YM_P_TABLE_NAME
 
-    select_list_y_ym_p, select_for_group_by_y_ym_p, joins_g_y_ym_p, where_g_y_ym_p, has_calculation_g_y_ym_p \
+    select_list_y_ym_p, select_for_group_by_y_ym_p, joins_g_y_ym_p, where_g_y_ym_p, order_by, has_calculation_g_y_ym_p \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, G_BY_Y_YM_P_TABLE_NAME)
 
     assert len(select_list_y_ym_p) == 4
@@ -381,7 +383,7 @@ def test_agg_table_wth_join_with_agg():
                                                       olap_structure_generator.get_tables_collection())
 
     # BASE_TABLE_NAME
-    select_list, select_for_group_by, joins, where, has_calculation \
+    select_list, select_for_group_by, joins, where, order_by, has_calculation \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, BASE_TABLE_NAME)
 
     assert len(select_list) == 4
@@ -402,7 +404,7 @@ def test_agg_table_wth_join_with_agg():
 
     # G_BY_Y_P_TABLE_NAME
 
-    select_list_y_p, select_for_group_by_y_p, joins_g_y_p, where_g_y_p, has_calculation_g_y_p \
+    select_list_y_p, select_for_group_by_y_p, joins_g_y_p, where_g_y_p, order_by, has_calculation_g_y_p \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, G_BY_Y_P_TABLE_NAME)
 
     assert len(select_list_y_p) == 4
@@ -423,7 +425,7 @@ def test_agg_table_wth_join_with_agg():
 
     # G_BY_Y_YM_P_TABLE_NAME
 
-    select_list_y_ym_p, select_for_group_by_y_ym_p, joins_g_y_ym_p, where_g_y_ym_p, has_calculation_g_y_ym_p \
+    select_list_y_ym_p, select_for_group_by_y_ym_p, joins_g_y_ym_p, where_g_y_ym_p, order_by, has_calculation_g_y_ym_p \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, G_BY_Y_YM_P_TABLE_NAME)
 
     assert len(select_list_y_ym_p) == 4
@@ -454,7 +456,7 @@ def test_service_key_count():
                                                       olap_structure_generator.get_tables_collection())
 
     # BASE_TABLE_NAME
-    select_list, select_for_group_by, joins, where, has_calculation \
+    select_list, select_for_group_by, joins, where, order_by, has_calculation \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, BASE_TABLE_NAME)
 
     assert len(select_list) == 3
@@ -480,7 +482,7 @@ def test_where_in_base_table():
         = olap_service.generate_pre_select_collection(frontend_to_backend_type,
                                                       olap_structure_generator.get_tables_collection())
 
-    select_list, select_for_group_by, joins, where, has_calculation \
+    select_list, select_for_group_by, joins, where, order_by, has_calculation \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, BASE_TABLE_NAME)
 
     assert len(select_list) == 2
@@ -507,7 +509,7 @@ def test_where_in_join():
         = olap_service.generate_pre_select_collection(frontend_to_backend_type,
                                                       olap_structure_generator.get_tables_collection())
 
-    select_list, select_for_group_by, joins, where, has_calculation \
+    select_list, select_for_group_by, joins, where, order_by, has_calculation \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, BASE_TABLE_NAME)
 
     assert len(select_list) == 2
@@ -537,7 +539,7 @@ def test_where_with_agg_in_base_table():
         = olap_service.generate_pre_select_collection(frontend_to_backend_type,
                                                       olap_structure_generator.get_tables_collection())
 
-    select_list, select_for_group_by, joins, where, has_calculation \
+    select_list, select_for_group_by, joins, where, order_by, has_calculation \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, BASE_TABLE_NAME)
 
     assert len(select_list) == 5
@@ -567,7 +569,7 @@ def test_where_with_agg_in_join():
         = olap_service.generate_pre_select_collection(frontend_to_backend_type,
                                                       olap_structure_generator.get_tables_collection())
 
-    select_list, select_for_group_by, joins, where, has_calculation \
+    select_list, select_for_group_by, joins, where, order_by, has_calculation \
         = olap_service.generate_structure_for_each_piece_of_join(short_table_only_base, BASE_TABLE_NAME)
 
     assert len(select_list) == 6
