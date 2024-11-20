@@ -4,17 +4,8 @@
 name: Python package
 
 on:
-  workflow_dispatch:
-    inputs:
-      build_id:
-        required: true
-        type: string
-      deploy_target:
-        required: true
-        type: string
-      perform_deploy:
-        required: true
-        type: boolean
+  push:
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -47,3 +38,4 @@ jobs:
     - name: Test with pytest
       run: |
         python -m pytest
+      
