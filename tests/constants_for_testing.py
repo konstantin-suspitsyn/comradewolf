@@ -37,3 +37,9 @@ def get_olap_games_folder() -> str:
     Table toml folder path with olap games
     """
     return os.path.join(test_olap_structure_path, r"olap_games")
+
+def get_olap_sales_folder() -> str:
+    """
+    Table toml folder path with olap games
+    """
+    return os.path.join(test_olap_structure_path, r"olap_sales")

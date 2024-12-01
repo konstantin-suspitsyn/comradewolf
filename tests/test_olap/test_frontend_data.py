@@ -144,3 +144,11 @@ where_between_numbers : dict = {'SELECT': [], 'CALCULATION': [],
                                                    'where': 'BETWEEN', 'condition': [1, 1000]}
                                                   ]}
 
+########################################################################################################################
+###################################################### SALES OLAP ######################################################
+########################################################################################################################
+
+# his should only use base_sales table_no_whereT
+sales_olap_date_and_pcs: dict = {'SELECT': [{'field_name': 'date'}, {'field_name': 'sku'}],
+                                 'CALCULATION': [{'field_name': 'pcs', 'calculation': 'sum'}],
+                                 'WHERE': []}

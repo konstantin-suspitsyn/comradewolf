@@ -1,0 +1,11 @@
+table = "reciepts"
+schema = "sales"
+database = "sales"
+base_table = "true"
+
+[fields]
+sk_date = {field_type = "service_key", alias = "sk_date",  calculation_type = "none", following_calculation = "none", front_name = "none", data_type="number"}
+reciept_no_f = {field_type = "dimension", alias = "reciept_no", calculation_type = "none", following_calculation = "none", front_name = "Reciepts No", data_type="number"}
+sku_f = {field_type = "dimension", alias = "sku", calculation_type = "none", following_calculation = "none", front_name = "SKU", data_type="number"}
+pcs_f = {field_type = "value", alias = "pcs", calculation_type = "none", following_calculation = "none", front_name = "Pieces", data_type="number"}
+rub_f = {field_type = "value", alias = "rub", calculation_type = "none", following_calculation = "none", front_name = "Rub", data_type="number"}
