@@ -1,7 +1,7 @@
 # Comradewolf
 ## О чем проект
 Comradewolf — часть бо́льшего проекта, который должен позволить людям осуществлять быстрые выгрузки из таблиц 
-с данными, не увеличивая количество агрегированных срезов (отдельных таблиц) в базе
+с данными, не увеличивая количество агрегированных срезов (отдельных таблиц) в базе для редких вычислений
 
 Проект реализует похожие принципы, что и классические OLAP-кубы, но с помощью реляционной базы данных.
 
@@ -132,7 +132,7 @@ WHERE
 ```SQL
 SELECT
      date
-    ,COUNT(DISTINCT reciept_no) as count_distinct_reciept_no
+    ,COUNT(DISTINCT reciept_no) as count_distinct__reciept_no
 FROM reciepts
 WHERE 
         date = '2024-01-01'
@@ -151,20 +151,20 @@ GROUP BY
 SELECT
      date
     ,sku
-    ,SUM(sum_rub) as sum_sum_rub
+    ,SUM(sum_rub) as sum__sum_rub
 FROM date_sku_sales
 GROUP BY 
      date
     ,sku
 ```
 
-Чтобы избавиться от ненужных GROUP BY, необходимо строить таблицу на схеме звезда, где неделя, месяц и год джойнятся 
-с датой. В этом случае, запрос выполнится следующим образом:
+Чтобы избавиться от ненужных GROUP BY, необходимо зарегистрировать view (например, ```view_date_sku_sales``), без материализации, убрав месяц, год и неделю. 
+В этом случае, запрос выполнится следующим образом:
 
 ```SQL
 SELECT 
      date
     ,sku
     ,sum_rub
-FROM date_sku_sales
+FROM view_date_sku_sales
 ```

@@ -1,0 +1,10 @@
+table = "dim_calendar"
+schema = "sales"
+database = "sales"
+
+[fields]
+sk_date = {field_type = "service_key", alias = "sk_date", calculation_type = "none", following_calculation = "none", front_name = "none", data_type="number"}
+date_f = {field_type = "dimension", alias = "date", front_name="Date", data_type="date"}
+month_f = {field_type = "dimension", alias = "month_no", front_name="Month", use_sk_for_count="True", data_type="number"}
+year_f = {field_type = "dimension", alias = "year_no", front_name="Year", use_sk_for_count="True", data_type="number"}
+week_f = {field_type = "dimension", alias = "week_no", front_name="Week", use_sk_for_count="True", data_type="number"}

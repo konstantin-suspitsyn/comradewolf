@@ -2,7 +2,7 @@ from comradewolf.universe.olap_language_select_builders import OlapPostgresSelec
 from comradewolf.universe.olap_prompt_converter_service import OlapPromptConverterService
 from comradewolf.universe.olap_service import OlapService
 from comradewolf.universe.olap_structure_generator import OlapStructureGenerator
-from comradewolf.utils.olap_data_types import OlapFrontendToBackend, OlapFrontend, ShortTablesCollectionForSelect
+from comradewolf.utils.olap_data_types import OlapFrontendToBackend, OlapFrontend
 from tests.constants_for_testing import get_olap_games_folder
 from tests.test_olap.test_frontend_data import base_table_with_join_no_where_no_calc, base_table_with_join_no_where, \
     group_by_read_no_where, base_table_with_join_wth_where, one_dimension_count, group_by_also_in_agg

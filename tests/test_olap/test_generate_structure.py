@@ -5,7 +5,7 @@ from comradewolf.universe.olap_structure_generator import OlapStructureGenerator
 from comradewolf.utils.olap_data_types import OlapFrontendToBackend, ShortTablesCollectionForSelect, OlapFrontend
 from tests.constants_for_testing import get_olap_games_folder
 from tests.test_olap.test_frontend_data import base_table_with_join_no_where_no_calc, base_table_with_join_no_where, \
-    group_by_read_no_where, group_by_also_in_agg, one_agg_value, one_dimension, base_table_with_join_no_gb, \
+    group_by_also_in_agg, one_agg_value, base_table_with_join_no_gb, \
     base_table_with_and_agg_with_join, base_table_with_and_agg, base_table_with_and_agg_without_join, \
     base_table_with_no_join_wht_where, base_table_with_join_wht_where, base_table_with_join_with_where, \
     base_table_with_join_wth_where

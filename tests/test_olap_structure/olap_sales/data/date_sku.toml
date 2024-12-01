@@ -1,0 +1,10 @@
+table = "date_sku"
+schema = "sales"
+database = "sales"
+base_table = "false"
+
+[fields]
+sk_date_f = {field_type = "service_key", alias = "sk_date", calculation_type = "none", following_calculation = "none", front_name = "none", data_type="number"}
+sku_f = {field_type = "dimension", alias = "sku", calculation_type = "none", following_calculation = "none", front_name = "SKU", data_type="number"}
+pcs_f = {field_type = "value", alias = "pcs", calculation_type = "sum", following_calculation = "sum", front_name = "Pieces", data_type="number"}
+rub_f = {field_type = "value", alias = "rub", calculation_type = "sum", following_calculation = "sum", front_name = "Rub", data_type="number"}
