@@ -169,7 +169,7 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
                 join_string += f"\nINNER JOIN {table} \n\t{joins[table]}"
 
         if len(select_for_group_by) > 0:
-            group_by_string += "\n\t " + "\n\t,".join(select_for_group_by)
+            group_by_string += "\n\t " + "\n\t,".join(select_for_group_by)
 
         sql += select_string
 
