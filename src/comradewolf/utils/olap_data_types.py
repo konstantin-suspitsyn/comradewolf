@@ -532,6 +532,12 @@ class OlapFrontend(UserDict):
         """
         return self.data[alias]["data_type"]
 
+    def get_field_type(self, alias):
+        return self.data[alias]["field_type"]
+
+    def get_front_name(self, alias):
+        return self.data[alias]["front_name"]
+
 
 class OlapFrontendToBackend(UserDict):
     """
