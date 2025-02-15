@@ -184,7 +184,7 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
         if len(group_by_string) > 0:
             sql += f"\n{GROUP_BY}{group_by_string}"
             has_group_by = True
-        if add_order_by:
+        if add_order_by & len(order_by)>0:
             order_by_string = ", ".join(order_by)
             sql += f"\nORDER BY {order_by_string}"
 
