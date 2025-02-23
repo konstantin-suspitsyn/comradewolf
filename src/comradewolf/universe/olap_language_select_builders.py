@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from comradewolf.utils.enums_and_field_dicts import OlapDataType, WhereConditionType
+from comradewolf.utils.enums_and_field_dicts import OlapDataType, WhereConditionType, OlapCalculations
 from comradewolf.utils.exceptions import OlapException
 from comradewolf.utils.olap_data_types import ShortTablesCollectionForSelect, OlapFrontendToBackend, \
     OlapTablesCollection, OlapFrontend
@@ -98,6 +98,16 @@ class OlapSelectBuilder(ABC):
         """
         pass
 
+    @staticmethod
+    def generate_calculation(calculation_type: str, backend_field_name: str) -> str:
+        """
+        Generates calculation from calculation_types
+        :param calculation_type:
+        :param backend_field_name:
+        :return:
+        """
+        pass
+
 
 class OlapPostgresSelectBuilder(OlapSelectBuilder):
     def generate_structure_for_dimension_table(self, frontend_fields: OlapFrontendToBackend,
@@ -169,7 +179,7 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
                 join_string += f"\nINNER JOIN {table} \n\t{joins[table]}"
 
         if len(select_for_group_by) > 0:
-            group_by_string += "\n\t " + "\n\t,".join(select_for_group_by)
+            group_by_string += "\n\t " + "\n\t,".join(select_for_group_by)
 
         sql += select_string
 
@@ -231,8 +241,11 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
         # Calculations
 
         for field in aggregation_structure:
-            backend_name: str = "{}({}.{})".format(field["backend_calculation"], short_table_name,
-                                                   field["backend_field"])
+
+            temp_backend_field: str = f"{short_table_name}.{field['backend_field']}"
+
+            backend_name: str = self.generate_calculation(field["backend_calculation"], temp_backend_field)
+
             frontend_name: str = field["frontend_field"]
             if field["frontend_calculation"] is not None:
                 frontend_name = create_field_with_calculation(frontend_name, field["frontend_calculation"])
@@ -276,10 +289,10 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
                                                           dimension_service_key)
 
             for field in aggregation_join[join_table_name]["fields"]:
-                backend_name: str = "{}({}.{})" \
-                    .format(field["backend_calculation"],
-                            short_join_table_name,
-                            field["backend_field"], )
+                temp_backend_field: str = f"{short_join_table_name}.{field['backend_field']}"
+
+                backend_name: str = self.generate_calculation(field["backend_calculation"], temp_backend_field)
+
                 frontend_name: str = create_field_with_calculation(field["frontend_field"],
                                                                    field["frontend_calculation"])
                 # frontend_name = "{}.{}".format(short_join_table_name, frontend_name)
@@ -399,3 +412,10 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
         :return:
         """
         return f"SELECT MIN({backend_name}) as min_value, MAX({backend_name}) as max_value"
+
+    @staticmethod
+    def generate_calculation(calculation_type: str, backend_field_name: str) -> str:
+        if calculation_type==OlapCalculations.COUNT_DISTINCT.value:
+            return f"COUNT(DISTINCT {backend_field_name})"
+
+        return f"{calculation_type}({backend_field_name})"

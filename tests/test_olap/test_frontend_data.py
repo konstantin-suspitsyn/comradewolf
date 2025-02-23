@@ -152,3 +152,9 @@ where_between_numbers : dict = {'SELECT': [], 'CALCULATION': [],
 sales_olap_date_and_pcs: dict = {'SELECT': [{'field_name': 'date'}, {'field_name': 'sku'}],
                                  'CALCULATION': [{'field_name': 'pcs', 'calculation': 'sum'}],
                                  'WHERE': []}
+
+# Count distinct test
+sales_olap_distinct: dict = {'SELECT': [{'field_name': 'date'}, {'field_name': 'sku'}],
+                                 'CALCULATION': [{'field_name': 'pcs', 'calculation': 'count_distinct'},
+                                                 {'field_name': 'pcs', 'calculation': 'sum'}],
+                                 'WHERE': []}

@@ -22,7 +22,7 @@ class BaseCalculationBuilder(ABC):
         if calculation_type == "count":
             return self.generate_count(field_name)
 
-        if calculation_type == "count distinct":
+        if calculation_type == "count_distinct":
             return self.generate_count_distinct(field_name)
 
         raise RuntimeError
