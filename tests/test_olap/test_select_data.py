@@ -154,7 +154,6 @@ def test_group_by_also_in_agg() -> None:
 
     assert "GROUP" not in s.get_sql("olap_test.games_olap.g_by_y")
 
-
 if __name__ == "__main__":
     test_should_be_only_base_table_no_group_by()
     # test_base_table_with_join_no_where()
