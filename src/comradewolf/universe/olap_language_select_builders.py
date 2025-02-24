@@ -388,6 +388,8 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
                 for item in front_condition:
                     temp_condition.append(current_placeholder.format(item))
                 condition = in_placeholder.format(",".join(temp_condition))
+            else:
+                OlapException("IN front_condition should be in a list")
         else:
             if isinstance(front_condition, list):
                 OlapException("List instead of str or int or float")
