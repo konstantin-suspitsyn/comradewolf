@@ -81,18 +81,21 @@ class OlapSelectBuilder(ABC):
         pass
 
     @staticmethod
-    def get_select_fiter_all(backend_name: str) -> str:
+    def get_select_fiter_all(backend_name: str, table_name: str, limit: int | None) -> str:
         """
         Returns select for all distinct values
+        :param table_name: name of table
+        :param limit: limits results if needed
         :param backend_name: field name
         :return:
         """
         pass
 
     @staticmethod
-    def get_select_fiter_max_min(backend_name: str) -> str:
+    def get_select_fiter_max_min(backend_name: str, table_name: str) -> str:
         """
         Returns select for max and min values
+        :param table_name:
         :param backend_name: field name
         :return:
         """
@@ -398,22 +401,30 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
         return condition
 
     @staticmethod
-    def get_select_fiter_all(backend_name: str) -> str:
+    def get_select_fiter_all(backend_name: str, table_name: str, limit: int | None) -> str:
         """
         Returns select for all distinct values
+        :param limit:
+        :param table_name:
         :param backend_name: field name
         :return:
         """
-        return f"SELECT DISTINCT {backend_name}"
+        sql: str = f"SELECT DISTINCT {backend_name} FROM {table_name} ORDER BY {backend_name}"
+
+        if limit is not None:
+            sql += f"\nLIMIT {limit}"
+
+        return sql
 
     @staticmethod
-    def get_select_fiter_max_min(backend_name: str) -> str:
+    def get_select_fiter_max_min(backend_name: str, table_name: str) -> str:
         """
         Returns select for max and min values
+        :param table_name:
         :param backend_name: field name
         :return:
         """
-        return f"SELECT MIN({backend_name}) as min_value, MAX({backend_name}) as max_value"
+        return f"SELECT MIN({backend_name}) as min_value, MAX({backend_name}) as max_value FROM {table_name}"
 
     @staticmethod
     def generate_calculation(calculation_type: str, backend_field_name: str) -> str:
