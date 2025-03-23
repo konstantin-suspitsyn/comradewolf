@@ -581,7 +581,7 @@ class OlapService:
             else:
                 raise OlapException(f"Wrong type of select_type: {select_type}")
 
-            sql = f"{select_statement} FROM {table_name}"
+            sql = f"{select_statement} FROM {table_name} ORDER BY {backend_field}"
 
             select_filter.add_table(table_name, sql, number_of_fields)
 
