@@ -553,9 +553,10 @@ class OlapService:
         return tables_filter
 
     def generate_filter_select(self, tables: list[TableForFilter], field_alias: str, select_type: str,
-                               tables_collection: OlapTablesCollection) -> SelectFilter:
+                               tables_collection: OlapTablesCollection, limit: int | None = None) -> SelectFilter:
         """
         Generates select for frontend filters
+        :param limit:
         :param tables_collection:
         :param tables:
         :param field_alias:
@@ -575,13 +576,15 @@ class OlapService:
             select_statement: str
 
             if select_type == FilterTypes.ALL.value:
-                select_statement = self.olap_select_builder.get_select_fiter_all(backend_field)
+                select_statement = self.olap_select_builder.get_select_fiter_all(backend_field, table_name, limit)
             elif select_type == FilterTypes.MAX_MIN.value:
-                select_statement = self.olap_select_builder.get_select_fiter_max_min(backend_field)
+                select_statement = self.olap_select_builder.get_select_fiter_max_min(backend_field, table_name)
             else:
                 raise OlapException(f"Wrong type of select_type: {select_type}")
 
-            sql = f"{select_statement} FROM {table_name}"
+
+
+            sql = select_statement
 
             select_filter.add_table(table_name, sql, number_of_fields)
 
