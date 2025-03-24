@@ -119,7 +119,7 @@ def test_base_table_with_join_wth_where() -> None:
     assert "WHERE" in s.get_sql(BASE_SALES)
     assert "base_sales.release_date_f > '2024-01-01'" in s.get_sql(BASE_SALES)
     assert "base_sales.price_f > 1000" in s.get_sql(BASE_SALES)
-    assert "dim_game.game_name = 'The Best Game'" in s.get_sql(BASE_SALES)
+    assert "dim_game.game_name_f = 'The Best Game'" in s.get_sql(BASE_SALES)
 
     assert s.get_sql(BASE_SALES).count("base_sales.year_f") == 2
     assert s.get_sql(BASE_SALES).count("base_sales.pcs_f") == 3

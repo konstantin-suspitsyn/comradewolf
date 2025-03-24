@@ -158,3 +158,12 @@ sales_olap_distinct: dict = {'SELECT': [{'field_name': 'date'}, {'field_name': '
                                  'CALCULATION': [{'field_name': 'pcs', 'calculation': 'count_distinct'},
                                                  {'field_name': 'pcs', 'calculation': 'sum'}],
                                  'WHERE': []}
+
+# his should only use base_sales table_no_whereT
+sales_olap_and_pcs_where: dict = {'SELECT': [],
+                                 'CALCULATION': [{'field_name': 'pcs', 'calculation': 'sum'}],
+                                 'WHERE': [{'field_name': 'week_no',
+                                                   'where': 'IN', 'condition': ['12', '25']},
+                                            {'field_name': 'year_no',
+                                                   'where': '=', 'condition': '2024'}
+                                                  ]}

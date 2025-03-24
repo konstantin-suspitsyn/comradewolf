@@ -525,7 +525,7 @@ def test_where_in_join():
 
     assert len(where) == 3
     for item in ['base_sales.release_date_f > \'2024-01-01\'', 'base_sales.price_f > 1000',
-                 'dim_game.game_name = \'The Best Game\'']:
+                 'dim_game.game_name_f = \'The Best Game\'']:
         assert item in where
 
 
@@ -588,7 +588,7 @@ def test_where_with_agg_in_join():
 
     assert len(where) == 3
     for item in ['base_sales.release_date_f > \'2024-01-01\'', 'base_sales.price_f > 1000',
-                 'dim_game.game_name = \'The Best Game\'']:
+                 'dim_game.game_name_f = \'The Best Game\'']:
         assert item in where
 
 

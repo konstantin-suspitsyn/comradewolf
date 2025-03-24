@@ -1,6 +1,6 @@
 from collections import UserDict
 
-from docutils.nodes import table
+from docutils.nodes import table, field_name
 
 from comradewolf.utils.enums_and_field_dicts import OlapFieldTypes, OlapFollowingCalculations, OlapCalculations, \
     FilterTypes
@@ -760,7 +760,10 @@ class ShortTablesCollectionForSelect(UserDict):
                  "service_key_dimension_table": service_key_dimension_table,
                  "conditions": []}
 
-        self.data[table_name]["join_where"][join_table_name]["conditions"].append({backend_field: condition})
+        condition_upd: dict = condition
+        condition_upd["field_name"] = backend_field
+
+        self.data[table_name]["join_where"][join_table_name]["conditions"].append({backend_field: condition_upd})
 
     def add_where(self, table_name: str, backend_field_name: str, condition: dict) -> None:
         """
@@ -774,7 +777,10 @@ class ShortTablesCollectionForSelect(UserDict):
         if backend_field_name not in self.data[table_name]["self_where"]:
             self.data[table_name]["self_where"][backend_field_name] = []
 
-        self.data[table_name]["self_where"][backend_field_name].append(condition)
+        condition_upd: dict = condition
+        condition_upd["field_name"] = backend_field_name
+
+        self.data[table_name]["self_where"][backend_field_name].append(condition_upd)
 
     def add_join_field_for_aggregation(self, table_name: str, field_name_alias: str, current_calculation: str,
                                        join_table_name: str, service_key_alias: str, service_key_dimension_table: str,
