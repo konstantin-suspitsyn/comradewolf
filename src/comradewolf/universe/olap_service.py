@@ -492,7 +492,13 @@ class OlapService:
 
     def generate_structure_for_dimension_table(self, frontend_fields: OlapFrontendToBackend,
                                                tables_collection: OlapTablesCollection) \
-            -> tuple[str | None, list[str], list[str], list[str], bool]:
+            -> tuple[str | None, list[str], list[str], list[str], bool, list[str]]:
+        """
+
+        :param frontend_fields:
+        :param tables_collection:
+        :return: table_name, select_list, select_for_group_by, where, has_calculation, order_by_list
+        """
         return self.olap_select_builder.generate_structure_for_dimension_table(frontend_fields, tables_collection)
 
     @staticmethod
@@ -592,11 +598,13 @@ class OlapService:
         return select_filter
 
     def generate_select_for_dimension(self, table_name: str, select_list: list[str], select_for_group_by: list[str],
-                                      where: list[str], has_calculation: bool, add_order_by: bool) -> SelectCollection:
+                                      where: list[str], has_calculation: bool, order_by: list[str], add_order_by: bool) \
+            -> SelectCollection:
+
         select_collection: SelectCollection = SelectCollection()
 
         sql, has_group_by = self.olap_select_builder.generate_select_query(select_list, select_for_group_by, {}, where,
-        has_calculation, table_name, [], 0, add_order_by)
+        has_calculation, table_name, order_by, 0, add_order_by)
 
         select_collection.add_table(table_name, sql, 0, has_group_by)
 
@@ -620,11 +628,11 @@ class OlapService:
 
 
         if not has_fact_table:
-            table_name, select_list, select_for_group_by, where, has_calculation \
+            table_name, select_list, select_for_group_by, where, has_calculation, order_by \
                 = self.generate_structure_for_dimension_table(frontend_data, tables_collection)
 
             return self.generate_select_for_dimension(table_name, select_list, select_for_group_by, where,
-                                                      has_calculation, add_order_by)
+                                                      has_calculation, order_by, add_order_by)
 
 
 
