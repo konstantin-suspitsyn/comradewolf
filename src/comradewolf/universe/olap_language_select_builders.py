@@ -30,6 +30,7 @@ class OlapSelectBuilder(ABC):
         """
         Generates select statement ready for database query
         All parameters come from self.generate_structure_for_each_piece_of_join()
+        :param add_order_by:
         :param order_by: list of order by fields
         :param has_calculation: If true, our select needs GROUP BY with select_for_group_by
         :param not_selected_fields_no:
@@ -58,13 +59,13 @@ class OlapSelectBuilder(ABC):
     @abstractmethod
     def generate_structure_for_dimension_table(self, frontend_fields: OlapFrontendToBackend,
                                                tables_collection: OlapTablesCollection) \
-            -> tuple[str, list[str], list[str], list[str], bool]:
+            -> tuple[str, list[str], list[str], list[str], bool, list[str]]:
         """
         Generates set of variables for self.generate_select_query()
         But only if no fact tables in frontend fields
         :param tables_collection:
         :param frontend_fields:
-        :return: table_name, select_list, select_for_group_by, where, has_calculation
+        :return: table_name, select_list, select_for_group_by, where, has_calculation, order_by_list
         """
         pass
 
@@ -115,7 +116,13 @@ class OlapSelectBuilder(ABC):
 class OlapPostgresSelectBuilder(OlapSelectBuilder):
     def generate_structure_for_dimension_table(self, frontend_fields: OlapFrontendToBackend,
                                                tables_collection: OlapTablesCollection) \
-            -> tuple[str, list[str], list[str], list[str], bool]:
+            -> tuple[str, list[str], list[str], list[str], bool, list[str]]:
+        """
+
+        :param frontend_fields:
+        :param tables_collection:
+        :return: table_name, select_list, select_for_group_by, where, has_calculation, order_by_list
+        """
         short_tables_collection: ShortTablesCollectionForSelect = ShortTablesCollectionForSelect()
 
         short_table_name: str
@@ -126,6 +133,7 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
         # All field should be inner joined
         # Structure {join_table_name: sk}
         where: list[str] = []
+        order_by: list[str] = []
         # Has calculation
         has_calculation: bool = False
 
@@ -139,6 +147,7 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
             current_backend_name = FIELD_NAME_WITH_ALIAS.format(f"{backend_name}", field["field_name"])
             select_list.append(current_backend_name)
             select_for_group_by.append(backend_name)
+            order_by.append(backend_name)
 
         for field in frontend_fields.get_calculation():
             current_table_name = tables_collection.get_dimension_table_with_field(field["field_name"])[0]
@@ -160,7 +169,7 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
             backend_name: str = f"{short_table_name}.{backend_field_name}"
             where.append("{} {} {}".format(backend_name, field["where"], field["condition"]))
 
-        return current_table_name, select_list, select_for_group_by, where, has_calculation
+        return current_table_name, select_list, select_for_group_by, where, has_calculation, order_by
 
     def generate_select_query(self, select_list: list, select_for_group_by: list, joins: dict, where: list,
                               has_calculation: bool, table_name: str, order_by: list[str], not_selected_fields_no: int,
@@ -197,7 +206,7 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
         if len(group_by_string) > 0:
             sql += f"\n{GROUP_BY}{group_by_string}"
             has_group_by = True
-        if add_order_by & len(order_by)>0:
+        if add_order_by and (len(order_by)>0):
             order_by_string = ", ".join(order_by)
             sql += f"\nORDER BY {order_by_string}"
 
@@ -274,6 +283,7 @@ class OlapPostgresSelectBuilder(OlapSelectBuilder):
                 frontend_name: str = join_field["frontend_field"]
 
                 select_list.append(f"{backend_name} as \"{frontend_name}\"")
+                order_by.append(backend_name)
                 if (len(aggregation_structure) > 0) or (len(aggregation_join) > 0):
                     select_for_group_by.append(backend_name)
 

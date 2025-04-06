@@ -142,6 +142,17 @@ def test_one_dimension_count() -> None:
     assert 'FROM olap_test.games_olap.dim_game' in s.get_sql(DIM_GAMES)
     assert 'GROUP' in s.get_sql(DIM_GAMES)
 
+def test_one_dimension_count_order_by() -> None:
+    # Поля, которые есть только в базовой таблице без group by
+    frontend_to_backend_type: OlapFrontendToBackend = olap_prompt_service.create_frontend_to_backend(
+        one_dimension_count, frontend_all_items_view)
+
+    s = olap_service.select_data(frontend_to_backend_type, olap_structure_generator.get_tables_collection(), True)
+
+    assert "bk_id_game__count" in s.get_sql("olap_test.games_olap.dim_game")
+    assert len(s) == 1
+
+    assert 'ORDER BY dim_game.bk_game_id_f' in s.get_sql(DIM_GAMES)
 
 def test_group_by_also_in_agg() -> None:
     # Поля, которые есть только в базовой таблице без group by
@@ -154,10 +165,33 @@ def test_group_by_also_in_agg() -> None:
 
     assert "GROUP" not in s.get_sql("olap_test.games_olap.g_by_y")
 
+def test_group_by_read_no_where_order_by() -> None:
+    # Поля, которые есть только в базовой таблице без group by
+    frontend_to_backend_type: OlapFrontendToBackend = olap_prompt_service.create_frontend_to_backend(
+        group_by_read_no_where, frontend_all_items_view)
+
+    s = olap_service.select_data(frontend_to_backend_type, olap_structure_generator.get_tables_collection(), True)
+
+    assert len(s) == 2
+    for table in s:
+        assert "ORDER BY" in s.get_sql(table)
+
+def test_base_table_with_join_no_where_order_by() -> None:
+    # Поля, которые есть только в базовой таблице без group by
+    frontend_to_backend_type: OlapFrontendToBackend = olap_prompt_service.create_frontend_to_backend(
+        base_table_with_join_no_where, frontend_all_items_view)
+
+    s = olap_service.select_data(frontend_to_backend_type, olap_structure_generator.get_tables_collection(), True)
+
+    assert len(s) == 1
+
 if __name__ == "__main__":
-    test_should_be_only_base_table_no_group_by()
+    # test_should_be_only_base_table_no_group_by()
     # test_base_table_with_join_no_where()
     # test_group_by_read_no_where()
     # test_base_table_with_join_wth_where()
     # test_one_dimension_count()
     # test_group_by_also_in_agg()
+    # test_one_dimension_count_order_by()
+    # test_group_by_read_no_where_order_by()
+    test_base_table_with_join_no_where_order_by()

@@ -21,7 +21,7 @@ def test_should_be_only_base_table_no_group_by() -> None:
     frontend_to_backend_type: OlapFrontendToBackend = olap_prompt_service.create_frontend_to_backend(
         one_dimension, frontend_all_items_view)
 
-    table_name, select_list, select_for_group_by, where, has_calculation \
+    table_name, select_list, select_for_group_by, where, has_calculation, order_by \
         = olap_service.generate_structure_for_dimension_table(frontend_to_backend_type,
                                                               olap_structure_generator.get_tables_collection())
 
@@ -38,7 +38,7 @@ def test_should_be_only_base_table_wth_group_by() -> None:
     frontend_to_backend_type: OlapFrontendToBackend = olap_prompt_service.create_frontend_to_backend(
         one_dimension_count, frontend_all_items_view)
 
-    table_name, select_list, select_for_group_by, where, has_calculation \
+    table_name, select_list, select_for_group_by, where, has_calculation, order_by \
         = olap_service.generate_structure_for_dimension_table(frontend_to_backend_type,
                                                               olap_structure_generator.get_tables_collection())
 
@@ -57,7 +57,7 @@ def test_should_be_only_base_table_wth_where() -> None:
     frontend_to_backend_type: OlapFrontendToBackend = olap_prompt_service.create_frontend_to_backend(
         one_dimension_count_where, frontend_all_items_view)
 
-    table_name, select_list, select_for_group_by, where, has_calculation \
+    table_name, select_list, select_for_group_by, where, has_calculation, order_by \
         = olap_service.generate_structure_for_dimension_table(frontend_to_backend_type,
                                                               olap_structure_generator.get_tables_collection())
 
